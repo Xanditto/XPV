@@ -30,12 +30,15 @@ public class Usuario {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String nickname;
 
     @Lob
     @Column(columnDefinition = "TEXT")
     private String avatar;
+
+    /** Hash bcrypt da senha escolhida pelo usuário após o primeiro login com Google. Nulo até então. */
+    private String senhaHash;
 
     @Column(nullable = false)
     private Instant criadoEm = Instant.now();

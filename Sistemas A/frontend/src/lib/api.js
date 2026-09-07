@@ -38,7 +38,32 @@ export async function loginComGoogle(idToken) {
   })
   const data = await tratarResposta(response)
   salvarSessao(data.sessionToken, data.usuario)
-  return data.usuario
+  return data
+}
+
+export async function loginComSenha(identificador, senha) {
+  const response = await fetch(`${API_URL}/api/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ identificador, senha }),
+  })
+  const data = await tratarResposta(response)
+  salvarSessao(data.sessionToken, data.usuario)
+  return data
+}
+
+export async function definirSenha(senha) {
+  const response = await fetch(`${API_URL}/api/auth/senha`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${getSessionToken()}`,
+    },
+    body: JSON.stringify({ senha }),
+  })
+  const usuario = await tratarResposta(response)
+  localStorage.setItem(USER_KEY, JSON.stringify(usuario))
+  return usuario
 }
 
 export async function buscarPerfil() {

@@ -34,6 +34,68 @@
   justify-content: center;
 }
 
+.divisoria {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: #9aa0ab;
+  font-size: 12px;
+  margin: 24px 0 16px;
+}
+
+.divisoria::before,
+.divisoria::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #2a2e37;
+}
+
+.divisoria span {
+  padding: 0 10px;
+}
+
+.pagina-inicio {
+  min-height: 100vh;
+}
+
+.barra-usuario {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px;
+}
+
+.avatar-pequeno {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid #2a2e37;
+}
+
+.nickname-topo {
+  font-size: 14px;
+  color: #f2f2f2;
+}
+
+.botao-editar-perfil,
+.botao-sair-topo {
+  background: transparent;
+  border: 1px solid #2a2e37;
+  color: #9aa0ab;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.botao-editar-perfil:hover,
+.botao-sair-topo:hover {
+  border-color: #7dd3fc;
+  color: #7dd3fc;
+}
+
 .formulario-perfil {
   display: flex;
   flex-direction: column;

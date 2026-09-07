@@ -56,11 +56,6 @@ export default function ProfilePage() {
     }
   }
 
-  function handleSair() {
-    logout()
-    navigate('/login')
-  }
-
   if (!usuario) return null
 
   return (
@@ -106,8 +101,8 @@ export default function ProfilePage() {
           {erro && <p className="mensagem mensagem-erro">{erro}</p>}
         </form>
 
-        <button type="button" className="botao-secundario" onClick={handleSair}>
-          Sair
+        <button type="button" className="botao-secundario" onClick={() => navigate('/inicio')}>
+          Voltar
         </button>
       </div>
     </div>
