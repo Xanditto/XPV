@@ -231,6 +231,12 @@
   font-size: 14px;
 }
 
+.aviso-perfil-privado {
+  color: #fbbf24;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
 .botao-desvincular {
   width: auto;
   margin-top: 0;
