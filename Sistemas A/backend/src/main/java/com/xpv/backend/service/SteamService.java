@@ -1,5 +1,7 @@
 package com.xpv.backend.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -14,7 +16,12 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Integração com a Steam via OpenID 2.0 (login "Entrar com Steam", sem
@@ -23,10 +30,16 @@ import java.util.Map;
 @Service
 public class SteamService {
 
+    private static final Logger log = LoggerFactory.getLogger(SteamService.class);
     private static final String OPENID_ENDPOINT = "https://steamcommunity.com/openid/login";
 
     private final HttpClient httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(8)).build();
     private final ObjectMapper objectMapper = new ObjectMapper();
+    // Biblotecas grandes têm centenas de jogos com estatísticas - disparar
+    // todas as chamadas de uma vez esbarra no rate limit da Steam Web API,
+    // fazendo algumas falharem silenciosamente e ficarem sem contador de
+    // conquistas. Limitar a concorrência reduz bastante isso.
+    private final ExecutorService executorConquistas = Executors.newFixedThreadPool(6);
 
     @Value("${steam.api-key:}")
     private String apiKey;
@@ -131,10 +144,111 @@ public class SteamService {
      * estiverem privados, a resposta vem sem a lista de jogos.
      */
     private boolean consultarBibliotecaPublica(String steamId) {
+        JsonNode resposta = consultarBibliotecaBruta(steamId);
+        return resposta != null && resposta.has("game_count");
+    }
+
+    public record JogoSteam(long appId, String nome, String imagem, double horasJogadas,
+                             int conquistasObtidas, int conquistasTotais) {
+    }
+
+    /**
+     * Biblioteca de jogos do usuário (nome, ícone, horas jogadas e
+     * conquistas). A Steam não devolve conquistas junto da lista de jogos -
+     * é preciso uma chamada extra por jogo (só para os que têm estatísticas
+     * visíveis), então elas são feitas em paralelo para não demorar demais
+     * quando a biblioteca tem muitos jogos.
+     */
+    public List<JogoSteam> buscarJogos(String steamId) {
+        JsonNode resposta = consultarBibliotecaBruta(steamId);
+        if (resposta == null || !resposta.has("games")) {
+            return List.of();
+        }
+
+        List<CompletableFuture<JogoSteam>> futuros = new ArrayList<>();
+        for (JsonNode jogo : resposta.path("games")) {
+            long appId = jogo.path("appid").asLong();
+            String iconHash = jogo.path("img_icon_url").asText("");
+            String imagem = iconHash.isBlank()
+                    ? ""
+                    : "https://cdn.steamstatic.com/steamcommunity/public/images/apps/" + appId + "/" + iconHash + ".jpg";
+            String nome = jogo.path("name").asText("Jogo " + appId);
+            double horasJogadas = jogo.path("playtime_forever").asLong() / 60.0;
+            boolean temEstatisticas = jogo.path("has_community_visible_stats").asBoolean(false);
+
+            futuros.add(CompletableFuture.supplyAsync(() -> {
+                int[] conquistas = temEstatisticas ? consultarConquistasComRetentativa(steamId, appId, nome) : new int[] {0, 0};
+                return new JogoSteam(appId, nome, imagem, horasJogadas, conquistas[0], conquistas[1]);
+            }, executorConquistas));
+        }
+
+        return futuros.stream().map(CompletableFuture::join).toList();
+    }
+
+    private static final int TENTATIVAS_CONQUISTAS = 3;
+
+    /** @return {conquistas obtidas, total de conquistas do jogo} */
+    private int[] consultarConquistasComRetentativa(String steamId, long appId, String nomeJogo) {
+        for (int tentativa = 1; tentativa <= TENTATIVAS_CONQUISTAS; tentativa++) {
+            try {
+                int[] resultado = consultarConquistas(steamId, appId);
+                if (resultado != null) {
+                    return resultado;
+                }
+            } catch (Exception e) {
+                log.warn("Falha ao consultar conquistas de '{}' (appid {}), tentativa {}/{}: {}",
+                        nomeJogo, appId, tentativa, TENTATIVAS_CONQUISTAS, e.getMessage());
+            }
+            try {
+                Thread.sleep(300L * tentativa);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+        log.warn("Não foi possível obter conquistas de '{}' (appid {}) após {} tentativas - ficará sem contador.",
+                nomeJogo, appId, TENTATIVAS_CONQUISTAS);
+        return new int[] {0, 0};
+    }
+
+    /** @return {conquistas obtidas, total de conquistas do jogo}, ou null se a chamada falhou (para permitir nova tentativa) */
+    private int[] consultarConquistas(String steamId, long appId) throws Exception {
+        String url = "https://api.steampowered.com/ISteamUserStats/GetPlayerAchievements/v0001/"
+                + "?appid=" + appId + "&key=" + urlEncode(apiKey) + "&steamid=" + urlEncode(steamId);
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .timeout(Duration.ofSeconds(8))
+                .GET()
+                .build();
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        if (response.statusCode() == 429) {
+            // Rate limit da Steam - vale tentar de novo depois de esperar.
+            throw new IllegalStateException("Rate limit da Steam (HTTP 429)");
+        }
+        if (response.statusCode() != 200) {
+            // Outros códigos (ex.: 400 "jogo sem estatísticas") não melhoram
+            // com retentativa - trata como "sem conquistas" direto.
+            return new int[] {0, 0};
+        }
+        JsonNode conquistas = objectMapper.readTree(response.body()).path("playerstats").path("achievements");
+        if (!conquistas.isArray()) {
+            return new int[] {0, 0};
+        }
+        int total = conquistas.size();
+        int obtidas = 0;
+        for (JsonNode conquista : conquistas) {
+            if (conquista.path("achieved").asInt() == 1) {
+                obtidas++;
+            }
+        }
+        return new int[] {obtidas, total};
+    }
+
+    private JsonNode consultarBibliotecaBruta(String steamId) {
         try {
             String url = "https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/"
                     + "?key=" + urlEncode(apiKey) + "&steamid=" + urlEncode(steamId)
-                    + "&include_appinfo=false&format=json";
+                    + "&include_appinfo=true&format=json";
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
                     .timeout(Duration.ofSeconds(8))
@@ -142,12 +256,11 @@ public class SteamService {
                     .build();
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() != 200) {
-                return false;
+                return null;
             }
-            JsonNode resposta = objectMapper.readTree(response.body()).path("response");
-            return resposta.has("game_count");
+            return objectMapper.readTree(response.body()).path("response");
         } catch (Exception e) {
-            return false;
+            return null;
         }
     }
 

@@ -1,8 +1,10 @@
 package com.xpv.backend.service;
 
 import com.xpv.backend.model.ContaPlataforma;
+import com.xpv.backend.model.Jogo;
 import com.xpv.backend.model.Usuario;
 import com.xpv.backend.repository.ContaPlataformaRepository;
+import com.xpv.backend.repository.JogoRepository;
 import com.xpv.backend.repository.UsuarioRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,11 +34,15 @@ class ContaPlataformaServiceTest {
     @Autowired
     ContaPlataformaRepository contaPlataformaRepository;
 
+    @Autowired
+    JogoRepository jogoRepository;
+
     Usuario dono;
     Usuario outroUsuario;
 
     @BeforeEach
     void configurar() {
+        jogoRepository.deleteAllInBatch();
         contaPlataformaRepository.deleteAll();
         usuarioRepository.deleteAll();
         dono = usuarioRepository.save(new Usuario("google-sub-dono", "dono@gmail.com", "Dono", null));
@@ -138,5 +144,38 @@ class ContaPlataformaServiceTest {
                 .isInstanceOf(ResponseStatusException.class);
 
         assertThat(contaPlataformaService.listar(dono)).hasSize(1);
+    }
+
+    @Test
+    void listarJogos_devolveOrdenadosPorHorasJogadasDecrescente() {
+        ContaPlataforma conta = contaPlataformaService.vincularSteam(dono,
+                new SteamService.PerfilSteam("76561198000000007", "Nick", "", true, false));
+        jogoRepository.save(new Jogo(conta, 10L, "Jogo Pouco Jogado", "", 2.0, 1, 10));
+        jogoRepository.save(new Jogo(conta, 20L, "Jogo Muito Jogado", "", 100.0, 5, 10));
+
+        List<Jogo> jogos = contaPlataformaService.listarJogos(dono, conta.getId());
+
+        assertThat(jogos).hasSize(2);
+        assertThat(jogos.get(0).getNome()).isEqualTo("Jogo Muito Jogado");
+        assertThat(jogos.get(1).getNome()).isEqualTo("Jogo Pouco Jogado");
+    }
+
+    @Test
+    void desvincular_removeTambemOsJogosDaConta() {
+        ContaPlataforma conta = contaPlataformaService.vincularSteam(dono,
+                new SteamService.PerfilSteam("76561198000000008", "Nick", "", true, false));
+        jogoRepository.save(new Jogo(conta, 30L, "Jogo Qualquer", "", 5.0, 0, 0));
+
+        contaPlataformaService.desvincular(dono, conta.getId());
+
+        assertThat(jogoRepository.findAll()).isEmpty();
+    }
+
+    @Test
+    void sincronizarJogos_naoSuportadoParaOutraPlataforma_lancaErro() {
+        ContaPlataforma conta = contaPlataformaService.vincularRiot(dono, new RiotService.PerfilRiot("puuid-3", "Nick#BR1"));
+
+        assertThatThrownBy(() -> contaPlataformaService.sincronizarJogos(dono, conta.getId()))
+                .isInstanceOf(ResponseStatusException.class);
     }
 }

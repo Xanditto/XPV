@@ -1,6 +1,7 @@
 package com.xpv.backend.controller;
 
 import com.xpv.backend.dto.ContaPlataformaResponse;
+import com.xpv.backend.dto.JogoResponse;
 import com.xpv.backend.dto.RiotContaRequest;
 import com.xpv.backend.model.Usuario;
 import com.xpv.backend.service.BattleNetService;
@@ -56,6 +57,20 @@ public class ContaPlataformaController {
                              @PathVariable Long id) {
         Usuario usuario = currentUserResolver.resolver(authorization);
         contaPlataformaService.desvincular(usuario, id);
+    }
+
+    @GetMapping("/{id}/jogos")
+    public List<JogoResponse> listarJogos(@RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorization,
+                                           @PathVariable Long id) {
+        Usuario usuario = currentUserResolver.resolver(authorization);
+        return contaPlataformaService.listarJogos(usuario, id).stream().map(JogoResponse::from).toList();
+    }
+
+    @PostMapping("/{id}/sincronizar")
+    public List<JogoResponse> sincronizar(@RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorization,
+                                           @PathVariable Long id) {
+        Usuario usuario = currentUserResolver.resolver(authorization);
+        return contaPlataformaService.sincronizarJogos(usuario, id).stream().map(JogoResponse::from).toList();
     }
 
     // ---------------------------------------------------------------
