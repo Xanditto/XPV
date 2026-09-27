@@ -128,3 +128,18 @@ export async function vincularRiot(riotId) {
   })
   return tratarResposta(response)
 }
+
+export async function listarJogos(contaId) {
+  const response = await fetch(`${API_URL}/api/contas/${contaId}/jogos`, {
+    headers: { Authorization: `Bearer ${getSessionToken()}` },
+  })
+  return tratarResposta(response)
+}
+
+export async function sincronizarJogos(contaId) {
+  const response = await fetch(`${API_URL}/api/contas/${contaId}/sincronizar`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${getSessionToken()}` },
+  })
+  return tratarResposta(response)
+}
