@@ -19,6 +19,9 @@ export default function HomePage() {
           className="avatar-pequeno"
         />
         <span className="nickname-topo">{usuario?.nickname}</span>
+        <button type="button" className="botao-editar-perfil" onClick={() => navigate('/contas')}>
+          Contas vinculadas
+        </button>
         <button type="button" className="botao-editar-perfil" onClick={() => navigate('/perfil')}>
           Editar perfil
         </button>

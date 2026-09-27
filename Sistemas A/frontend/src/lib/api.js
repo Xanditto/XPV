@@ -25,7 +25,10 @@ export function logout() {
 async function tratarResposta(response) {
   if (!response.ok) {
     const erro = await response.json().catch(() => ({}))
-    throw new Error(erro.message || `Erro na requisição (${response.status})`)
+    // Erros de validação de campo (@Valid) trazem a mensagem específica
+    // dentro de "errors", não em "message" (que ali vem genérico).
+    const mensagemValidacao = erro.errors?.[0]?.defaultMessage
+    throw new Error(mensagemValidacao || erro.message || `Erro na requisição (${response.status})`)
   }
   return response.json()
 }
@@ -85,4 +88,43 @@ export async function atualizarPerfil({ nickname, avatar }) {
   const usuario = await tratarResposta(response)
   localStorage.setItem(USER_KEY, JSON.stringify(usuario))
   return usuario
+}
+
+export async function listarContas() {
+  const response = await fetch(`${API_URL}/api/contas`, {
+    headers: { Authorization: `Bearer ${getSessionToken()}` },
+  })
+  return tratarResposta(response)
+}
+
+export async function desvincularConta(id) {
+  const response = await fetch(`${API_URL}/api/contas/${id}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${getSessionToken()}` },
+  })
+  if (!response.ok) {
+    const erro = await response.json().catch(() => ({}))
+    const mensagemValidacao = erro.errors?.[0]?.defaultMessage
+    throw new Error(mensagemValidacao || erro.message || `Erro na requisição (${response.status})`)
+  }
+}
+
+export function iniciarVinculoSteam() {
+  window.location.href = `${API_URL}/api/contas/steam/iniciar?session=${encodeURIComponent(getSessionToken())}`
+}
+
+export function iniciarVinculoBattleNet() {
+  window.location.href = `${API_URL}/api/contas/battlenet/iniciar?session=${encodeURIComponent(getSessionToken())}`
+}
+
+export async function vincularRiot(riotId) {
+  const response = await fetch(`${API_URL}/api/contas/riot`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${getSessionToken()}`,
+    },
+    body: JSON.stringify({ riotId }),
+  })
+  return tratarResposta(response)
 }

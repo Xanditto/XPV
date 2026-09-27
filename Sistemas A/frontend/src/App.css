@@ -186,3 +186,67 @@
 .mensagem-sucesso {
   color: #4ade80;
 }
+
+.cartao-largo {
+  max-width: 520px;
+}
+
+.lista-contas {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.linha-conta {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #0f1115;
+  border: 1px solid #2a2e37;
+  border-radius: 10px;
+  padding: 12px;
+  text-align: left;
+}
+
+.avatar-conta {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.info-conta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  font-size: 13px;
+  color: #9aa0ab;
+}
+
+.info-conta strong {
+  color: #f2f2f2;
+  font-size: 14px;
+}
+
+.aviso-perfil-privado {
+  color: #fbbf24;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.botao-desvincular {
+  width: auto;
+  margin-top: 0;
+  padding: 6px 12px;
+  font-size: 12px;
+  align-self: center;
+}
+
+.formulario-riot {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
