@@ -106,6 +106,12 @@ export default function ContasPage() {
                 <div className="info-conta">
                   <strong>{conta.plataforma}</strong>
                   <span>{conta.nickname}</span>
+                  {conta.plataforma === 'Steam' && conta.perfilPublico === false && (
+                    <span className="aviso-perfil-privado">
+                      Perfil Steam privado — jogos, horas e conquistas não podem ser exibidos.
+                      Torne seu perfil público nas configurações de privacidade da Steam.
+                    </span>
+                  )}
                 </div>
                 <button type="button" className="botao-secundario botao-desvincular"
                         onClick={() => handleDesvincular(conta.id)}>
