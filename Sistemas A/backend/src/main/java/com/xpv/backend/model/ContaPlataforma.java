@@ -56,6 +56,14 @@ public class ContaPlataforma {
      */
     private Boolean perfilPublico;
 
+    /**
+     * Indica se a biblioteca de jogos (horas, conquistas) está visível.
+     * É uma configuração de privacidade separada do perfil geral na Steam
+     * ("Detalhes do jogo") - por isso é um campo distinto de perfilPublico.
+     * Nula para plataformas onde esse conceito não se aplica.
+     */
+    private Boolean bibliotecaPublica;
+
     @Column(nullable = false)
     private Instant vinculadoEm = Instant.now();
 

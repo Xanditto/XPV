@@ -112,6 +112,13 @@ export default function ContasPage() {
                       Torne seu perfil público nas configurações de privacidade da Steam.
                     </span>
                   )}
+                  {conta.plataforma === 'Steam' && conta.perfilPublico !== false && conta.bibliotecaPublica === false && (
+                    <span className="aviso-perfil-privado">
+                      Biblioteca de jogos privada — mesmo com o perfil público, jogos, horas e
+                      conquistas não podem ser exibidos. Em "Detalhes do jogo", nas configurações
+                      de privacidade da Steam, torne isso público também.
+                    </span>
+                  )}
                 </div>
                 <button type="button" className="botao-secundario botao-desvincular"
                         onClick={() => handleDesvincular(conta.id)}>

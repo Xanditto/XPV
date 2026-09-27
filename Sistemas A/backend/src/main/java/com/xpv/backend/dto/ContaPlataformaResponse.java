@@ -8,7 +8,8 @@ public record ContaPlataformaResponse(
         String identificador,
         String nickname,
         String avatar,
-        Boolean perfilPublico) {
+        Boolean perfilPublico,
+        Boolean bibliotecaPublica) {
 
     public static ContaPlataformaResponse from(ContaPlataforma conta) {
         return new ContaPlataformaResponse(
@@ -17,6 +18,7 @@ public record ContaPlataformaResponse(
                 conta.getIdentificador(),
                 conta.getNickname(),
                 conta.getAvatar(),
-                conta.getPerfilPublico());
+                conta.getPerfilPublico(),
+                conta.getBibliotecaPublica());
     }
 }

@@ -45,7 +45,7 @@ class ContaPlataformaServiceTest {
 
     @Test
     void vincularSteam_criaContaComPerfilPublico() {
-        var perfil = new SteamService.PerfilSteam("76561198000000001", "JogadorX", "http://avatar", true);
+        var perfil = new SteamService.PerfilSteam("76561198000000001", "JogadorX", "http://avatar", true, true);
 
         ContaPlataforma conta = contaPlataformaService.vincularSteam(dono, perfil);
 
@@ -53,11 +53,12 @@ class ContaPlataformaServiceTest {
         assertThat(conta.getPlataforma().getNome()).isEqualTo("Steam");
         assertThat(conta.getIdentificador()).isEqualTo("76561198000000001");
         assertThat(conta.getPerfilPublico()).isTrue();
+        assertThat(conta.getBibliotecaPublica()).isTrue();
     }
 
     @Test
     void vincularSteamComPerfilPrivado_marcaPerfilPublicoComoFalso() {
-        var perfil = new SteamService.PerfilSteam("76561198000000002", "JogadorPrivado", "", false);
+        var perfil = new SteamService.PerfilSteam("76561198000000002", "JogadorPrivado", "", false, false);
 
         ContaPlataforma conta = contaPlataformaService.vincularSteam(dono, perfil);
 
@@ -65,9 +66,19 @@ class ContaPlataformaServiceTest {
     }
 
     @Test
+    void vincularSteamComPerfilPublicoMasBibliotecaPrivada_marcaCamposSeparadamente() {
+        var perfil = new SteamService.PerfilSteam("76561198000000010", "JogadorBibliotecaPrivada", "", true, false);
+
+        ContaPlataforma conta = contaPlataformaService.vincularSteam(dono, perfil);
+
+        assertThat(conta.getPerfilPublico()).isTrue();
+        assertThat(conta.getBibliotecaPublica()).isFalse();
+    }
+
+    @Test
     void vincularSteamDuasVezes_atualizaEmVezDeDuplicar() {
-        contaPlataformaService.vincularSteam(dono, new SteamService.PerfilSteam("76561198000000003", "Antigo", "", true));
-        contaPlataformaService.vincularSteam(dono, new SteamService.PerfilSteam("76561198000000003", "NovoNick", "", false));
+        contaPlataformaService.vincularSteam(dono, new SteamService.PerfilSteam("76561198000000003", "Antigo", "", true, true));
+        contaPlataformaService.vincularSteam(dono, new SteamService.PerfilSteam("76561198000000003", "NovoNick", "", false, false));
 
         List<ContaPlataforma> contas = contaPlataformaService.listar(dono);
 
@@ -101,7 +112,7 @@ class ContaPlataformaServiceTest {
 
     @Test
     void steamRiotEBattleNetDoMesmoUsuario_saoContasSeparadas() {
-        contaPlataformaService.vincularSteam(dono, new SteamService.PerfilSteam("76561198000000004", "Nick", "", true));
+        contaPlataformaService.vincularSteam(dono, new SteamService.PerfilSteam("76561198000000004", "Nick", "", true, true));
         contaPlataformaService.vincularRiot(dono, new RiotService.PerfilRiot("puuid-2", "Nick#BR1"));
         contaPlataformaService.vincularBattleNet(dono, new BattleNetService.PerfilBattleNet("battlenet-account-2", "Nick#1234"));
 
@@ -111,7 +122,7 @@ class ContaPlataformaServiceTest {
     @Test
     void desvincular_removeAConta() {
         ContaPlataforma conta = contaPlataformaService.vincularSteam(dono,
-                new SteamService.PerfilSteam("76561198000000005", "Nick", "", true));
+                new SteamService.PerfilSteam("76561198000000005", "Nick", "", true, true));
 
         contaPlataformaService.desvincular(dono, conta.getId());
 
@@ -121,7 +132,7 @@ class ContaPlataformaServiceTest {
     @Test
     void desvincular_naoPermiteRemoverContaDeOutroUsuario() {
         ContaPlataforma conta = contaPlataformaService.vincularSteam(dono,
-                new SteamService.PerfilSteam("76561198000000006", "Nick", "", true));
+                new SteamService.PerfilSteam("76561198000000006", "Nick", "", true, true));
 
         assertThatThrownBy(() -> contaPlataformaService.desvincular(outroUsuario, conta.getId()))
                 .isInstanceOf(ResponseStatusException.class);

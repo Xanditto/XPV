@@ -38,6 +38,7 @@ public class ContaPlataformaService {
         conta.setNickname(perfil.nickname());
         conta.setAvatar(perfil.avatar());
         conta.setPerfilPublico(perfil.perfilPublico());
+        conta.setBibliotecaPublica(perfil.bibliotecaPublica());
         return contaPlataformaRepository.save(conta);
     }
 
