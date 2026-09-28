@@ -34,7 +34,8 @@ public class SteamService {
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
 
-    public record PerfilSteam(String steamId, String nickname, String avatar, boolean perfilPublico) {
+    public record PerfilSteam(String steamId, String nickname, String avatar, boolean perfilPublico,
+                               boolean bibliotecaPublica) {
     }
 
     public String gerarUrlLogin(String sessionToken) {
@@ -113,11 +114,40 @@ public class SteamService {
                     steamId,
                     jogador.path("personaname").asText(steamId),
                     jogador.path("avatarfull").asText(""),
-                    publico);
+                    publico,
+                    consultarBibliotecaPublica(steamId));
         } catch (ResponseStatusException e) {
             throw e;
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Falha ao consultar a Steam", e);
+        }
+    }
+
+    /**
+     * A Steam separa a privacidade do "perfil" da privacidade dos "detalhes
+     * do jogo" (biblioteca, horas jogadas). Não existe um campo booleano
+     * explícito para essa segunda configuração — a forma documentada de
+     * detectá-la é consultar GetOwnedGames: se os detalhes do jogo
+     * estiverem privados, a resposta vem sem a lista de jogos.
+     */
+    private boolean consultarBibliotecaPublica(String steamId) {
+        try {
+            String url = "https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/"
+                    + "?key=" + urlEncode(apiKey) + "&steamid=" + urlEncode(steamId)
+                    + "&include_appinfo=false&format=json";
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .timeout(Duration.ofSeconds(8))
+                    .GET()
+                    .build();
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200) {
+                return false;
+            }
+            JsonNode resposta = objectMapper.readTree(response.body()).path("response");
+            return resposta.has("game_count");
+        } catch (Exception e) {
+            return false;
         }
     }
 
