@@ -4,6 +4,7 @@ import DefinirSenhaPage from './pages/DefinirSenhaPage'
 import HomePage from './pages/HomePage'
 import ProfilePage from './pages/ProfilePage'
 import ContasPage from './pages/ContasPage'
+import BibliotecaPage from './pages/BibliotecaPage'
 import ProtectedRoute from './components/ProtectedRoute'
 import { getSessionToken } from './lib/api'
 import './App.css'
@@ -41,6 +42,14 @@ export default function App() {
         element={
           <ProtectedRoute>
             <ContasPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/biblioteca"
+        element={
+          <ProtectedRoute>
+            <BibliotecaPage />
           </ProtectedRoute>
         }
       />

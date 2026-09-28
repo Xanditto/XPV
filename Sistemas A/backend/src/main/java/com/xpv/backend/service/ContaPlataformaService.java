@@ -1,15 +1,18 @@
 package com.xpv.backend.service;
 
 import com.xpv.backend.model.ContaPlataforma;
+import com.xpv.backend.model.Jogo;
 import com.xpv.backend.model.Plataforma;
 import com.xpv.backend.model.Usuario;
 import com.xpv.backend.repository.ContaPlataformaRepository;
+import com.xpv.backend.repository.JogoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -17,15 +20,19 @@ import java.util.List;
 public class ContaPlataformaService {
 
     private final ContaPlataformaRepository contaPlataformaRepository;
+    private final JogoRepository jogoRepository;
     private final PlataformaService plataformaService;
+    private final SteamService steamService;
 
     public List<ContaPlataforma> listar(Usuario usuario) {
         return contaPlataformaRepository.findByUsuario(usuario);
     }
 
+    @Transactional
     public void desvincular(Usuario usuario, Long id) {
         ContaPlataforma conta = contaPlataformaRepository.findByIdAndUsuario(id, usuario)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Conta vinculada não encontrada"));
+        jogoRepository.deleteByContaPlataformaId(conta.getId());
         contaPlataformaRepository.delete(conta);
     }
 
@@ -39,7 +46,12 @@ public class ContaPlataformaService {
         conta.setAvatar(perfil.avatar());
         conta.setPerfilPublico(perfil.perfilPublico());
         conta.setBibliotecaPublica(perfil.bibliotecaPublica());
-        return contaPlataformaRepository.save(conta);
+        conta = contaPlataformaRepository.save(conta);
+
+        if (perfil.bibliotecaPublica()) {
+            sincronizarJogosSteam(conta, perfil.steamId());
+        }
+        return conta;
     }
 
     @Transactional
@@ -60,5 +72,40 @@ public class ContaPlataformaService {
         conta.setIdentificador(perfil.accountId());
         conta.setNickname(perfil.battletag());
         return contaPlataformaRepository.save(conta);
+    }
+
+    public List<Jogo> listarJogos(Usuario usuario, Long contaId) {
+        ContaPlataforma conta = buscarContaDoUsuario(usuario, contaId);
+        return ordenarPorHorasJogadas(jogoRepository.findByContaPlataformaId(conta.getId()));
+    }
+
+    @Transactional
+    public List<Jogo> sincronizarJogos(Usuario usuario, Long contaId) {
+        ContaPlataforma conta = buscarContaDoUsuario(usuario, contaId);
+        if (!PlataformaService.STEAM.equals(conta.getPlataforma().getNome())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Sincronização de biblioteca ainda não é suportada para " + conta.getPlataforma().getNome());
+        }
+        sincronizarJogosSteam(conta, conta.getIdentificador());
+        return ordenarPorHorasJogadas(jogoRepository.findByContaPlataformaId(conta.getId()));
+    }
+
+    private List<Jogo> ordenarPorHorasJogadas(List<Jogo> jogos) {
+        return jogos.stream()
+                .sorted(Comparator.comparingDouble(Jogo::getHorasJogadas).reversed())
+                .toList();
+    }
+
+    private void sincronizarJogosSteam(ContaPlataforma conta, String steamId) {
+        jogoRepository.deleteByContaPlataformaId(conta.getId());
+        for (SteamService.JogoSteam jogoSteam : steamService.buscarJogos(steamId)) {
+            jogoRepository.save(new Jogo(conta, jogoSteam.appId(), jogoSteam.nome(), jogoSteam.imagem(),
+                    jogoSteam.horasJogadas(), jogoSteam.conquistasObtidas(), jogoSteam.conquistasTotais()));
+        }
+    }
+
+    private ContaPlataforma buscarContaDoUsuario(Usuario usuario, Long contaId) {
+        return contaPlataformaRepository.findByIdAndUsuario(contaId, usuario)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Conta vinculada não encontrada"));
     }
 }

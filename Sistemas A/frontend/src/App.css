@@ -54,16 +54,102 @@
   padding: 0 10px;
 }
 
-.pagina-inicio {
+.layout-app {
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.corpo-app {
+  display: flex;
+  flex: 1;
+}
+
+.menu-lateral {
+  width: 220px;
+  flex-shrink: 0;
+  border-right: 1px solid #2a2e37;
+  padding: 24px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.menu-lateral-item {
+  display: flex;
+  align-items: center;
+  text-align: left;
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: #9aa0ab;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.menu-lateral-item:hover {
+  background: #1a1d24;
+  color: #f2f2f2;
+}
+
+.menu-lateral-item.ativo {
+  background: #1a1d24;
+  color: #7dd3fc;
+  font-weight: 600;
+}
+
+.conteudo-principal {
+  flex: 1;
+  padding: 40px;
+  text-align: left;
+}
+
+.titulo-pagina {
+  margin: 0 0 8px;
+  font-size: 28px;
+  color: #7dd3fc;
+  text-align: left;
+}
+
+.subtitulo-pagina {
+  margin: 0 0 24px;
+  color: #9aa0ab;
+  font-size: 14px;
+  text-align: left;
 }
 
 .barra-usuario {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
   gap: 12px;
   padding: 16px 24px;
+  border-bottom: 1px solid #2a2e37;
+}
+
+.marca-app {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.marca-titulo {
+  font-size: 20px;
+  font-weight: 700;
+  color: #7dd3fc;
+}
+
+.marca-subtitulo {
+  font-size: 12px;
+  color: #9aa0ab;
+}
+
+.controles-usuario {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .avatar-pequeno {
@@ -249,4 +335,108 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+.lista-jogos {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 640px;
+  max-height: 420px;
+  overflow-y: auto;
+  margin-bottom: 16px;
+}
+
+.linha-jogo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #0f1115;
+  border: 1px solid #2a2e37;
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
+.icone-jogo {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.nome-jogo {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #f2f2f2;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.icone-steam {
+  flex-shrink: 0;
+  color: #66c0f4;
+}
+
+.icone-conquista-100 {
+  flex-shrink: 0;
+}
+
+.conquistas-jogo {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.conquistas-completo {
+  color: #d4af37;
+  font-weight: 600;
+}
+
+.conquistas-incompleto {
+  color: #9aa0ab;
+}
+
+.horas-jogo {
+  font-size: 12px;
+  color: #7dd3fc;
+  white-space: nowrap;
+}
+
+.cabecalho-biblioteca {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  max-width: 640px;
+  margin-bottom: 8px;
+}
+
+.cabecalho-biblioteca .titulo-pagina {
+  margin: 0;
+}
+
+.campo-ordenacao {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #9aa0ab;
+  white-space: nowrap;
+}
+
+.campo-ordenacao select {
+  background: #0f1115;
+  border: 1px solid #2a2e37;
+  border-radius: 8px;
+  padding: 6px 10px;
+  color: #f2f2f2;
+  font-size: 13px;
+  cursor: pointer;
 }
