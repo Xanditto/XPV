@@ -17,3 +17,22 @@ CREATE TABLE IF NOT EXISTS jogos (
     conquistas_totais INTEGER NOT NULL,
     UNIQUE (conta_plataforma_id, app_id)
 );
+
+-- Mesmo motivo acima (Issue #10): criamos "destaques" e "destaque_jogos" na
+-- mão para não depender da geração automática de DDL do Hibernate, que já
+-- se mostrou pouco confiável nesse projeto para tabelas com várias colunas.
+CREATE TABLE IF NOT EXISTS destaques (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    usuario_id BIGINT NOT NULL,
+    tipo VARCHAR(255) NOT NULL,
+    posicao INTEGER NOT NULL,
+    plataforma VARCHAR(255)
+);
+
+CREATE TABLE IF NOT EXISTS destaque_jogos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    destaque_id BIGINT NOT NULL,
+    conta_plataforma_id BIGINT NOT NULL,
+    app_id BIGINT NOT NULL,
+    ordem INTEGER NOT NULL
+);

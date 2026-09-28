@@ -5,6 +5,7 @@ import HomePage from './pages/HomePage'
 import ProfilePage from './pages/ProfilePage'
 import ContasPage from './pages/ContasPage'
 import BibliotecaPage from './pages/BibliotecaPage'
+import MeuPerfilPage from './pages/MeuPerfilPage'
 import ProtectedRoute from './components/ProtectedRoute'
 import { getSessionToken } from './lib/api'
 import './App.css'
@@ -50,6 +51,14 @@ export default function App() {
         element={
           <ProtectedRoute>
             <BibliotecaPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/meu-perfil"
+        element={
+          <ProtectedRoute>
+            <MeuPerfilPage />
           </ProtectedRoute>
         }
       />

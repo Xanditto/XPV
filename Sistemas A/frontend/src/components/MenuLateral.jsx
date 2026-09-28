@@ -1,8 +1,9 @@
 import { useLocation, useNavigate } from 'react-router-dom'
 
 const ITENS = [
-  { rota: '/contas', rotulo: 'Contas vinculadas' },
+  { rota: '/meu-perfil', rotulo: 'Meu perfil' },
   { rota: '/biblioteca', rotulo: 'Biblioteca' },
+  { rota: '/contas', rotulo: 'Contas vinculadas' },
 ]
 
 export default function MenuLateral() {

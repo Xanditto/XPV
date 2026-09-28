@@ -143,3 +143,22 @@ export async function sincronizarJogos(contaId) {
   })
   return tratarResposta(response)
 }
+
+export async function listarDestaques() {
+  const response = await fetch(`${API_URL}/api/destaques`, {
+    headers: { Authorization: `Bearer ${getSessionToken()}` },
+  })
+  return tratarResposta(response)
+}
+
+export async function salvarDestaques(destaques) {
+  const response = await fetch(`${API_URL}/api/destaques`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${getSessionToken()}`,
+    },
+    body: JSON.stringify(destaques),
+  })
+  return tratarResposta(response)
+}

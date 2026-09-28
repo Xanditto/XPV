@@ -431,6 +431,153 @@
   white-space: nowrap;
 }
 
+.lista-destaques {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 640px;
+  margin-bottom: 16px;
+}
+
+.cartao-destaque {
+  background: #1a1d24;
+  border: 1px solid #2a2e37;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.cabecalho-cartao-destaque {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  color: #f2f2f2;
+  font-size: 14px;
+}
+
+.botao-remover-destaque {
+  background: transparent;
+  border: 1px solid #2a2e37;
+  color: #9aa0ab;
+  border-radius: 6px;
+  width: 24px;
+  height: 24px;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.botao-remover-destaque:hover {
+  border-color: #f87171;
+  color: #f87171;
+}
+
+.conteudo-destaque-horas {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #66c0f4;
+}
+
+.numero-destaque {
+  font-size: 24px;
+  font-weight: 700;
+  color: #7dd3fc;
+}
+
+.lista-destaque-jogos {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.linha-destaque-jogo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #0f1115;
+  border: 1px solid #2a2e37;
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
+.nome-jogo-destaque {
+  flex: 1;
+  font-size: 13px;
+  color: #f2f2f2;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.posicao-ranking {
+  font-size: 12px;
+  font-weight: 700;
+  color: #7dd3fc;
+  flex-shrink: 0;
+}
+
+.lista-ranking {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.formulario-destaque {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 480px;
+  background: #1a1d24;
+  border: 1px solid #2a2e37;
+  border-radius: 12px;
+  padding: 16px;
+  text-align: left;
+  margin-bottom: 16px;
+}
+
+.formulario-destaque select {
+  background: #0f1115;
+  border: 1px solid #2a2e37;
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: #f2f2f2;
+  font-size: 14px;
+}
+
+.lista-selecao-jogos {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.opcao-jogo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #f2f2f2;
+  cursor: pointer;
+}
+
+.acoes-formulario-destaque {
+  display: flex;
+  gap: 10px;
+}
+
+.acoes-formulario-destaque .botao-principal,
+.acoes-formulario-destaque .botao-secundario {
+  margin-top: 0;
+  width: auto;
+  flex: 1;
+}
+
 .campo-ordenacao select {
   background: #0f1115;
   border: 1px solid #2a2e37;
