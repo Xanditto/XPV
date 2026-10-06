@@ -14,6 +14,7 @@ evoluir para um TCC.
 | --- | --- | --- |
 | 1 | Login com conta Google e perfil básico (nickname + foto) | ✅ Na `main` |
 | 2 | Vincular conta Steam/Riot Games/Battle.net; aviso de perfil Steam privado | 🔎 Em revisão — [PR #7](../../pull/7) e [PR #8](../../pull/8) |
+| 5 | Avaliação de usuários e recomendação de jogos | 📝 Planejamento — [Issue #15](../../issues/15) e [Issue #16](../../issues/16) |
 
 ## Estrutura
 
