@@ -26,7 +26,9 @@ CREATE TABLE IF NOT EXISTS destaques (
     usuario_id BIGINT NOT NULL,
     tipo VARCHAR(255) NOT NULL,
     posicao INTEGER NOT NULL,
-    plataforma VARCHAR(255)
+    plataforma VARCHAR(255),
+    imagem TEXT,
+    texto TEXT
 );
 
 CREATE TABLE IF NOT EXISTS destaque_jogos (
@@ -34,5 +36,8 @@ CREATE TABLE IF NOT EXISTS destaque_jogos (
     destaque_id BIGINT NOT NULL,
     conta_plataforma_id BIGINT NOT NULL,
     app_id BIGINT NOT NULL,
-    ordem INTEGER NOT NULL
+    ordem INTEGER NOT NULL,
+    conquista_chave VARCHAR(255),
+    conquista_nome VARCHAR(255),
+    conquista_icone TEXT
 );

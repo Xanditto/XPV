@@ -90,6 +90,15 @@ public class ContaPlataformaService {
         return ordenarPorHorasJogadas(jogoRepository.findByContaPlataformaId(conta.getId()));
     }
 
+    public List<SteamService.ConquistaDetalhada> listarConquistasDoJogo(Usuario usuario, Long contaId, Long appId) {
+        ContaPlataforma conta = buscarContaDoUsuario(usuario, contaId);
+        if (!PlataformaService.STEAM.equals(conta.getPlataforma().getNome())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Conquistas detalhadas ainda não são suportadas para " + conta.getPlataforma().getNome());
+        }
+        return steamService.buscarConquistasDetalhadas(conta.getIdentificador(), appId);
+    }
+
     private List<Jogo> ordenarPorHorasJogadas(List<Jogo> jogos) {
         return jogos.stream()
                 .sorted(Comparator.comparingDouble(Jogo::getHorasJogadas).reversed())

@@ -17,8 +17,10 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -242,6 +244,96 @@ public class SteamService {
             }
         }
         return new int[] {obtidas, total};
+    }
+
+    public record ConquistaDetalhada(String chave, String nome, String descricao, String icone) {
+    }
+
+    /**
+     * Conquistas que o usuário já obteve num jogo, com nome e ícone (usado
+     * para montar a lista de escolha do destaque CONQUISTAS_ESPECIFICAS - só
+     * faz sentido escolher conquistas já obtidas). A Steam não devolve nome
+     * nem ícone junto do progresso do jogador (GetPlayerAchievements só tem a
+     * chave técnica "apiname" e se foi obtida) - é preciso combinar com o
+     * esquema do jogo (GetSchemaForGame), que tem os nomes/ícones de exibição.
+     */
+    public List<ConquistaDetalhada> buscarConquistasDetalhadas(String steamId, long appId) {
+        try {
+            JsonNode progresso = objectMapper.readTree(consultarConquistasBrutas(steamId, appId))
+                    .path("playerstats").path("achievements");
+            if (!progresso.isArray()) {
+                return List.of();
+            }
+            Set<String> obtidas = new HashSet<>();
+            for (JsonNode conquista : progresso) {
+                if (conquista.path("achieved").asInt() == 1) {
+                    obtidas.add(conquista.path("apiname").asText());
+                }
+            }
+            if (obtidas.isEmpty()) {
+                return List.of();
+            }
+
+            List<JsonNode> esquema = consultarEsquemaConquistas(appId);
+            List<ConquistaDetalhada> resultado = new ArrayList<>();
+            for (JsonNode conquista : esquema) {
+                String chave = conquista.path("name").asText();
+                if (obtidas.contains(chave)) {
+                    resultado.add(new ConquistaDetalhada(
+                            chave,
+                            conquista.path("displayName").asText(chave),
+                            conquista.path("description").asText(""),
+                            conquista.path("icon").asText("")));
+                }
+            }
+            return resultado;
+        } catch (Exception e) {
+            log.warn("Falha ao consultar conquistas detalhadas do appid {}: {}", appId, e.getMessage());
+            return List.of();
+        }
+    }
+
+    /** @return o id da conquista (apiname) correspondente a chave, ou null se ela não existir no jogo */
+    public ConquistaDetalhada buscarConquistaPorChave(String steamId, long appId, String chave) {
+        return buscarConquistasDetalhadas(steamId, appId).stream()
+                .filter(c -> c.chave().equals(chave))
+                .findFirst()
+                .orElse(null);
+    }
+
+    private String consultarConquistasBrutas(String steamId, long appId) throws Exception {
+        String url = "https://api.steampowered.com/ISteamUserStats/GetPlayerAchievements/v0001/"
+                + "?appid=" + appId + "&key=" + urlEncode(apiKey) + "&steamid=" + urlEncode(steamId) + "&l=portuguese";
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .timeout(Duration.ofSeconds(8))
+                .GET()
+                .build();
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        return response.statusCode() == 200 ? response.body() : "{}";
+    }
+
+    /** @return a lista "availableGameStats.achievements" do esquema do jogo (nomes/ícones de exibição), ou vazia */
+    private List<JsonNode> consultarEsquemaConquistas(long appId) throws Exception {
+        String url = "https://api.steampowered.com/ISteamUserStats/GetSchemaForGame/v2/"
+                + "?appid=" + appId + "&key=" + urlEncode(apiKey) + "&l=portuguese";
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .timeout(Duration.ofSeconds(8))
+                .GET()
+                .build();
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        if (response.statusCode() != 200) {
+            return List.of();
+        }
+        JsonNode achievements = objectMapper.readTree(response.body())
+                .path("game").path("availableGameStats").path("achievements");
+        if (!achievements.isArray()) {
+            return List.of();
+        }
+        List<JsonNode> resultado = new ArrayList<>();
+        achievements.forEach(resultado::add);
+        return resultado;
     }
 
     private JsonNode consultarBibliotecaBruta(String steamId) {

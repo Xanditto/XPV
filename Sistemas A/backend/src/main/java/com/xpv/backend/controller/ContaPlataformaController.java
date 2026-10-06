@@ -1,5 +1,6 @@
 package com.xpv.backend.controller;
 
+import com.xpv.backend.dto.ConquistaDetalhadaResponse;
 import com.xpv.backend.dto.ContaPlataformaResponse;
 import com.xpv.backend.dto.JogoResponse;
 import com.xpv.backend.dto.RiotContaRequest;
@@ -71,6 +72,17 @@ public class ContaPlataformaController {
                                            @PathVariable Long id) {
         Usuario usuario = currentUserResolver.resolver(authorization);
         return contaPlataformaService.sincronizarJogos(usuario, id).stream().map(JogoResponse::from).toList();
+    }
+
+    /** Conquistas já obtidas pelo usuário num jogo - usado para montar o destaque CONQUISTAS_ESPECIFICAS. */
+    @GetMapping("/{id}/jogos/{appId}/conquistas")
+    public List<ConquistaDetalhadaResponse> listarConquistasDoJogo(
+            @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorization,
+            @PathVariable Long id, @PathVariable Long appId) {
+        Usuario usuario = currentUserResolver.resolver(authorization);
+        return contaPlataformaService.listarConquistasDoJogo(usuario, id, appId).stream()
+                .map(ConquistaDetalhadaResponse::from)
+                .toList();
     }
 
     // ---------------------------------------------------------------
