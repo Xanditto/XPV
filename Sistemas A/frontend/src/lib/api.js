@@ -151,6 +151,13 @@ export async function listarConquistasDoJogo(contaId, appId) {
   return tratarResposta(response)
 }
 
+export async function buscarDetalhesLojaDoJogo(contaId, appId) {
+  const response = await fetch(`${API_URL}/api/contas/${contaId}/jogos/${appId}/loja`, {
+    headers: { Authorization: `Bearer ${getSessionToken()}` },
+  })
+  return tratarResposta(response)
+}
+
 export async function listarDestaques() {
   const response = await fetch(`${API_URL}/api/destaques`, {
     headers: { Authorization: `Bearer ${getSessionToken()}` },

@@ -374,20 +374,44 @@
   border-radius: 12px;
   padding: 24px;
   min-height: 320px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.detalhes-jogo-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
 .detalhes-jogo {
   display: flex;
-  flex-direction: column;
   align-items: flex-start;
-  gap: 16px;
+  gap: 24px;
 }
 
 .detalhes-jogo-capa {
-  width: 120px;
-  height: 120px;
+  width: 220px;
+  height: 330px;
   border-radius: 8px;
   object-fit: cover;
+  flex-shrink: 0;
+  background: #0f1115;
+}
+
+.detalhes-jogo-info {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 8px;
+}
+
+.detalhes-jogo-cabecalho {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
 }
 
 .detalhes-jogo-nome {
@@ -434,6 +458,108 @@
 
 .detalhes-jogo-estatistica-valor.conquistas-incompleto {
   color: #9aa0ab;
+}
+
+.detalhes-jogo-horas-sistema {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.detalhes-jogo-chip {
+  background: #0f1115;
+  border: 1px solid #2a2e37;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 12px;
+  color: #9aa0ab;
+}
+
+.detalhes-jogo-loja {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 20px;
+  border-top: 1px solid #2a2e37;
+}
+
+.detalhes-jogo-descricao {
+  margin: 0;
+  color: #d1d5db;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.detalhes-jogo-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.detalhes-jogo-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  color: #f2f2f2;
+}
+
+.detalhes-jogo-metacritic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 15px;
+  border-radius: 2px;
+}
+
+.detalhes-jogo-metacritic-alta {
+  background: #6c3;
+}
+
+.detalhes-jogo-metacritic-media {
+  background: #fc3;
+}
+
+.detalhes-jogo-metacritic-baixa {
+  background: #f00;
+}
+
+.detalhes-jogo-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.detalhes-jogo-tag {
+  background: #0f1115;
+  border: 1px solid #2a2e37;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  color: #7dd3fc;
+}
+
+.detalhes-jogo-tag-categoria {
+  color: #9aa0ab;
+}
+
+.detalhes-jogo-capturas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.detalhes-jogo-captura {
+  width: 160px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #2a2e37;
 }
 
 .icone-jogo {

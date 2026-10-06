@@ -16,6 +16,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -151,7 +152,8 @@ public class SteamService {
     }
 
     public record JogoSteam(long appId, String nome, String imagem, double horasJogadas,
-                             int conquistasObtidas, int conquistasTotais) {
+                             int conquistasObtidas, int conquistasTotais, Instant ultimoAcesso,
+                             double horasWindows, double horasMac, double horasLinux, double horasDeck) {
     }
 
     /**
@@ -176,11 +178,18 @@ public class SteamService {
                     : "https://cdn.steamstatic.com/steamcommunity/public/images/apps/" + appId + "/" + iconHash + ".jpg";
             String nome = jogo.path("name").asText("Jogo " + appId);
             double horasJogadas = jogo.path("playtime_forever").asLong() / 60.0;
+            double horasWindows = jogo.path("playtime_windows_forever").asLong() / 60.0;
+            double horasMac = jogo.path("playtime_mac_forever").asLong() / 60.0;
+            double horasLinux = jogo.path("playtime_linux_forever").asLong() / 60.0;
+            double horasDeck = jogo.path("playtime_deck_forever").asLong() / 60.0;
+            long rtimeUltimoAcesso = jogo.path("rtime_last_played").asLong(0);
+            Instant ultimoAcesso = rtimeUltimoAcesso > 0 ? Instant.ofEpochSecond(rtimeUltimoAcesso) : null;
             boolean temEstatisticas = jogo.path("has_community_visible_stats").asBoolean(false);
 
             futuros.add(CompletableFuture.supplyAsync(() -> {
                 int[] conquistas = temEstatisticas ? consultarConquistasComRetentativa(steamId, appId, nome) : new int[] {0, 0};
-                return new JogoSteam(appId, nome, imagem, horasJogadas, conquistas[0], conquistas[1]);
+                return new JogoSteam(appId, nome, imagem, horasJogadas, conquistas[0], conquistas[1],
+                        ultimoAcesso, horasWindows, horasMac, horasLinux, horasDeck);
             }, executorConquistas));
         }
 
@@ -244,6 +253,86 @@ public class SteamService {
             }
         }
         return new int[] {obtidas, total};
+    }
+
+    public record Genero(String id, String nome) {
+    }
+
+    public record Categoria(String id, String nome) {
+    }
+
+    public record Captura(String miniatura, String completa) {
+    }
+
+    public record DetalhesLoja(String descricao, List<Genero> generos, List<String> desenvolvedoras,
+                                List<String> publicadoras, String dataLancamento, Integer notaMetacritic,
+                                List<Categoria> categorias, List<Captura> capturas) {
+    }
+
+    /**
+     * Informações da ficha da loja da Steam (descrição, gêneros,
+     * desenvolvedora/publicadora, data de lançamento, nota do Metacritic,
+     * categorias e capturas de tela). É um endpoint público da própria loja
+     * (não da Web API), sem necessidade de chave - mas sujeito a um rate
+     * limit mais agressivo, então só é chamado sob demanda (um jogo por
+     * vez, quando o usuário abre o painel de detalhes), nunca durante a
+     * sincronização em massa da biblioteca.
+     */
+    public DetalhesLoja buscarDetalhesLoja(long appId) {
+        try {
+            String url = "https://store.steampowered.com/api/appdetails?appids=" + appId + "&l=portuguese";
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .timeout(Duration.ofSeconds(8))
+                    .GET()
+                    .build();
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200) {
+                return null;
+            }
+
+            JsonNode raiz = objectMapper.readTree(response.body()).path(String.valueOf(appId));
+            if (!raiz.path("success").asBoolean(false)) {
+                return null;
+            }
+            JsonNode dados = raiz.path("data");
+
+            List<Genero> generos = new ArrayList<>();
+            for (JsonNode genero : dados.path("genres")) {
+                generos.add(new Genero(genero.path("id").asText(), genero.path("description").asText()));
+            }
+
+            List<String> desenvolvedoras = new ArrayList<>();
+            dados.path("developers").forEach(d -> desenvolvedoras.add(d.asText()));
+
+            List<String> publicadoras = new ArrayList<>();
+            dados.path("publishers").forEach(p -> publicadoras.add(p.asText()));
+
+            List<Categoria> categorias = new ArrayList<>();
+            for (JsonNode categoria : dados.path("categories")) {
+                categorias.add(new Categoria(categoria.path("id").asText(), categoria.path("description").asText()));
+            }
+
+            List<Captura> capturas = new ArrayList<>();
+            for (JsonNode captura : dados.path("screenshots")) {
+                capturas.add(new Captura(captura.path("path_thumbnail").asText(), captura.path("path_full").asText()));
+            }
+
+            Integer notaMetacritic = dados.has("metacritic") ? dados.path("metacritic").path("score").asInt() : null;
+
+            return new DetalhesLoja(
+                    dados.path("short_description").asText(""),
+                    generos,
+                    desenvolvedoras,
+                    publicadoras,
+                    dados.path("release_date").path("date").asText(""),
+                    notaMetacritic,
+                    categorias,
+                    capturas);
+        } catch (Exception e) {
+            log.warn("Falha ao consultar detalhes da loja do appid {}: {}", appId, e.getMessage());
+            return null;
+        }
     }
 
     public record ConquistaDetalhada(String chave, String nome, String descricao, String icone) {

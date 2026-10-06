@@ -2,6 +2,7 @@ package com.xpv.backend.controller;
 
 import com.xpv.backend.dto.ConquistaDetalhadaResponse;
 import com.xpv.backend.dto.ContaPlataformaResponse;
+import com.xpv.backend.dto.DetalhesLojaResponse;
 import com.xpv.backend.dto.JogoResponse;
 import com.xpv.backend.dto.RiotContaRequest;
 import com.xpv.backend.model.Usuario;
@@ -83,6 +84,15 @@ public class ContaPlataformaController {
         return contaPlataformaService.listarConquistasDoJogo(usuario, id, appId).stream()
                 .map(ConquistaDetalhadaResponse::from)
                 .toList();
+    }
+
+    /** Ficha da loja da Steam de um jogo (descrição, gêneros, nota do Metacritic, capturas de tela...). */
+    @GetMapping("/{id}/jogos/{appId}/loja")
+    public DetalhesLojaResponse buscarDetalhesLojaDoJogo(
+            @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorization,
+            @PathVariable Long id, @PathVariable Long appId) {
+        Usuario usuario = currentUserResolver.resolver(authorization);
+        return DetalhesLojaResponse.from(contaPlataformaService.buscarDetalhesLojaDoJogo(usuario, id, appId));
     }
 
     // ---------------------------------------------------------------

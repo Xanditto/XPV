@@ -15,6 +15,11 @@ CREATE TABLE IF NOT EXISTS jogos (
     horas_jogadas FLOAT NOT NULL,
     conquistas_obtidas INTEGER NOT NULL,
     conquistas_totais INTEGER NOT NULL,
+    ultimo_acesso TIMESTAMP,
+    horas_windows FLOAT NOT NULL DEFAULT 0,
+    horas_mac FLOAT NOT NULL DEFAULT 0,
+    horas_linux FLOAT NOT NULL DEFAULT 0,
+    horas_deck FLOAT NOT NULL DEFAULT 0,
     UNIQUE (conta_plataforma_id, app_id)
 );
 

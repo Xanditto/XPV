@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Instant;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -176,6 +177,32 @@ class ContaPlataformaServiceTest {
         ContaPlataforma conta = contaPlataformaService.vincularRiot(dono, new RiotService.PerfilRiot("puuid-3", "Nick#BR1"));
 
         assertThatThrownBy(() -> contaPlataformaService.sincronizarJogos(dono, conta.getId()))
+                .isInstanceOf(ResponseStatusException.class);
+    }
+
+    @Test
+    void listarJogos_devolveUltimoAcessoEHorasPorSistema() {
+        ContaPlataforma conta = contaPlataformaService.vincularSteam(dono,
+                new SteamService.PerfilSteam("76561198000000009", "Nick", "", true, false));
+        Instant ultimoAcesso = Instant.parse("2026-01-01T12:00:00Z");
+        jogoRepository.save(new Jogo(conta, 70L, "Jogo Multiplataforma", "", 40.0, 0, 0,
+                ultimoAcesso, 20.0, 5.0, 10.0, 5.0));
+
+        List<Jogo> jogos = contaPlataformaService.listarJogos(dono, conta.getId());
+
+        assertThat(jogos).hasSize(1);
+        assertThat(jogos.get(0).getUltimoAcesso()).isEqualTo(ultimoAcesso);
+        assertThat(jogos.get(0).getHorasWindows()).isEqualTo(20.0);
+        assertThat(jogos.get(0).getHorasMac()).isEqualTo(5.0);
+        assertThat(jogos.get(0).getHorasLinux()).isEqualTo(10.0);
+        assertThat(jogos.get(0).getHorasDeck()).isEqualTo(5.0);
+    }
+
+    @Test
+    void buscarDetalhesLojaDoJogo_naoSuportadoParaOutraPlataforma_lancaErro() {
+        ContaPlataforma conta = contaPlataformaService.vincularRiot(dono, new RiotService.PerfilRiot("puuid-4", "Nick#BR1"));
+
+        assertThatThrownBy(() -> contaPlataformaService.buscarDetalhesLojaDoJogo(dono, conta.getId(), 10L))
                 .isInstanceOf(ResponseStatusException.class);
     }
 }

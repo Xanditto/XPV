@@ -99,6 +99,19 @@ public class ContaPlataformaService {
         return steamService.buscarConquistasDetalhadas(conta.getIdentificador(), appId);
     }
 
+    public SteamService.DetalhesLoja buscarDetalhesLojaDoJogo(Usuario usuario, Long contaId, Long appId) {
+        ContaPlataforma conta = buscarContaDoUsuario(usuario, contaId);
+        if (!PlataformaService.STEAM.equals(conta.getPlataforma().getNome())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Detalhes da loja ainda não são suportados para " + conta.getPlataforma().getNome());
+        }
+        SteamService.DetalhesLoja detalhes = steamService.buscarDetalhesLoja(appId);
+        if (detalhes == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Não foi possível consultar a loja da Steam");
+        }
+        return detalhes;
+    }
+
     private List<Jogo> ordenarPorHorasJogadas(List<Jogo> jogos) {
         return jogos.stream()
                 .sorted(Comparator.comparingDouble(Jogo::getHorasJogadas).reversed())
@@ -109,7 +122,9 @@ public class ContaPlataformaService {
         jogoRepository.deleteByContaPlataformaId(conta.getId());
         for (SteamService.JogoSteam jogoSteam : steamService.buscarJogos(steamId)) {
             jogoRepository.save(new Jogo(conta, jogoSteam.appId(), jogoSteam.nome(), jogoSteam.imagem(),
-                    jogoSteam.horasJogadas(), jogoSteam.conquistasObtidas(), jogoSteam.conquistasTotais()));
+                    jogoSteam.horasJogadas(), jogoSteam.conquistasObtidas(), jogoSteam.conquistasTotais(),
+                    jogoSteam.ultimoAcesso(), jogoSteam.horasWindows(), jogoSteam.horasMac(),
+                    jogoSteam.horasLinux(), jogoSteam.horasDeck()));
         }
     }
 
