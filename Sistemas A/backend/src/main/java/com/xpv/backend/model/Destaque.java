@@ -10,6 +10,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
@@ -22,9 +23,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Um destaque de perfil escolhido pelo usuário (Issue #10) - no máximo 2 por
- * usuário, ver DestaqueService. Os jogos escolhidos (JOGO_FAVORITO,
- * PERFECCIONISTA) são referenciados por appId, não pelo id interno de Jogo:
+ * Um destaque de perfil escolhido pelo usuário (Issue #10) - no máximo
+ * DestaqueService.MAXIMO_DESTAQUES por usuário. Os jogos escolhidos
+ * (JOGO_FAVORITO, PERFECCIONISTA, CONQUISTAS_ESPECIFICAS) são referenciados
+ * por appId, não pelo id interno de Jogo:
  * a sincronização da Steam apaga e recria todas as linhas de Jogo a cada
  * sincronização, então uma referência por id ficaria órfã. O appId da Steam
  * é estável e sobrevive a ressincronizações.
@@ -53,6 +55,16 @@ public class Destaque {
 
     /** Usado só por HORAS_PLATAFORMA (ex.: "Steam"). Nulo nos demais tipos. */
     private String plataforma;
+
+    /** Usada só por IMAGEM_PERSONALIZADA (base64, mesmo esquema do avatar do usuário). Nula nos demais tipos. */
+    @Lob
+    @Column(columnDefinition = "TEXT")
+    private String imagem;
+
+    /** Usado só por CAIXA_TEXTO. Nulo nos demais tipos. */
+    @Lob
+    @Column(columnDefinition = "TEXT")
+    private String texto;
 
     @OneToMany(mappedBy = "destaque", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("ordem asc")

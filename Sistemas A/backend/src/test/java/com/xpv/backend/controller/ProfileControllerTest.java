@@ -125,6 +125,21 @@ class ProfileControllerTest {
     }
 
     @Test
+    void usuarioConsegueDefinirEApagarADescricao() throws Exception {
+        criarUsuarioComSenha("google-sub-13", "oitavo@gmail.com", "NicknameDescricao", "senha123");
+        String token = logar("oitavo@gmail.com", "senha123");
+
+        var comDescricao = put("/api/profile",
+                "{\"nickname\":\"NicknameDescricao\",\"avatar\":\"\",\"descricao\":\"Gamer desde sempre.\"}", token);
+        assertThat(objectMapper.readTree(comDescricao.body()).path("descricao").asText())
+                .isEqualTo("Gamer desde sempre.");
+
+        var semDescricao = put("/api/profile",
+                "{\"nickname\":\"NicknameDescricao\",\"avatar\":\"\",\"descricao\":\"\"}", token);
+        assertThat(objectMapper.readTree(semDescricao.body()).path("descricao").asText()).isEmpty();
+    }
+
+    @Test
     void nicknameMuitoCurto_retorna400() throws Exception {
         criarUsuarioComSenha("google-sub-12", "setimo@gmail.com", "NicknameValido", "senha123");
         String token = logar("setimo@gmail.com", "senha123");
