@@ -76,14 +76,14 @@ export async function buscarPerfil() {
   return tratarResposta(response)
 }
 
-export async function atualizarPerfil({ nickname, avatar }) {
+export async function atualizarPerfil({ nickname, avatar, descricao }) {
   const response = await fetch(`${API_URL}/api/profile`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${getSessionToken()}`,
     },
-    body: JSON.stringify({ nickname, avatar }),
+    body: JSON.stringify({ nickname, avatar, descricao }),
   })
   const usuario = await tratarResposta(response)
   localStorage.setItem(USER_KEY, JSON.stringify(usuario))
@@ -139,6 +139,13 @@ export async function listarJogos(contaId) {
 export async function sincronizarJogos(contaId) {
   const response = await fetch(`${API_URL}/api/contas/${contaId}/sincronizar`, {
     method: 'POST',
+    headers: { Authorization: `Bearer ${getSessionToken()}` },
+  })
+  return tratarResposta(response)
+}
+
+export async function listarConquistasDoJogo(contaId, appId) {
+  const response = await fetch(`${API_URL}/api/contas/${contaId}/jogos/${appId}/conquistas`, {
     headers: { Authorization: `Bearer ${getSessionToken()}` },
   })
   return tratarResposta(response)

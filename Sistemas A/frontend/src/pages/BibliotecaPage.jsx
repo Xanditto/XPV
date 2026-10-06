@@ -30,6 +30,7 @@ export default function BibliotecaPage() {
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState('')
   const [ordenacao, setOrdenacao] = useState('horas')
+  const [jogoSelecionadoAppId, setJogoSelecionadoAppId] = useState(null)
 
   useEffect(() => {
     listarContas()
@@ -47,7 +48,12 @@ export default function BibliotecaPage() {
         }
         return jogosAtuais
       })
-      .then(setJogos)
+      .then((jogosCarregados) => {
+        setJogos(jogosCarregados)
+        if (jogosCarregados.length > 0) {
+          setJogoSelecionadoAppId(jogosCarregados[0].appId)
+        }
+      })
       .catch((err) => setErro(err.message || 'Não foi possível carregar a biblioteca.'))
       .finally(() => setCarregando(false))
   }, [])
@@ -56,6 +62,8 @@ export default function BibliotecaPage() {
     () => [...jogos].sort(ORDENACOES[ordenacao].comparar),
     [jogos, ordenacao],
   )
+
+  const jogoSelecionado = jogos.find((jogo) => jogo.appId === jogoSelecionadoAppId) || null
 
   return (
     <LayoutApp>
@@ -97,30 +105,45 @@ export default function BibliotecaPage() {
           {jogosOrdenados.length === 0 ? (
             <p className="mensagem">Nenhum jogo encontrado.</p>
           ) : (
-            <div className="lista-jogos">
-              {jogosOrdenados.map((jogo) => {
-                const completo = jogo.conquistasTotais > 0 && jogo.conquistasObtidas === jogo.conquistasTotais
-                return (
-                  <div key={jogo.appId} className="linha-jogo">
-                    <img
-                      src={jogo.imagem || 'https://placehold.co/32x32?text=%20'}
-                      alt={jogo.nome}
-                      className="icone-jogo"
-                    />
-                    <span className="nome-jogo">
-                      <IconeSteam />
-                      {jogo.nome}
-                    </span>
-                    {jogo.conquistasTotais > 0 && (
-                      <span className={`conquistas-jogo ${completo ? 'conquistas-completo' : 'conquistas-incompleto'}`}>
-                        {completo && <IconeConquista100 />}
-                        {jogo.conquistasObtidas}/{jogo.conquistasTotais}
+            <div className="biblioteca-layout">
+              <div className="lista-jogos">
+                {jogosOrdenados.map((jogo) => {
+                  const completo = jogo.conquistasTotais > 0 && jogo.conquistasObtidas === jogo.conquistasTotais
+                  return (
+                    <button
+                      key={jogo.appId}
+                      type="button"
+                      className={`linha-jogo ${jogo.appId === jogoSelecionadoAppId ? 'linha-jogo-selecionada' : ''}`}
+                      onClick={() => setJogoSelecionadoAppId(jogo.appId)}
+                    >
+                      <img
+                        src={jogo.imagem || 'https://placehold.co/32x32?text=%20'}
+                        alt={jogo.nome}
+                        className="icone-jogo"
+                      />
+                      <span className="nome-jogo">
+                        <IconeSteam />
+                        {jogo.nome}
                       </span>
-                    )}
-                    <span className="horas-jogo">{formatarHoras(jogo.horasJogadas)}</span>
-                  </div>
-                )
-              })}
+                      {jogo.conquistasTotais > 0 && (
+                        <span className={`conquistas-jogo ${completo ? 'conquistas-completo' : 'conquistas-incompleto'}`}>
+                          {completo && <IconeConquista100 />}
+                          {jogo.conquistasObtidas}/{jogo.conquistasTotais}
+                        </span>
+                      )}
+                      <span className="horas-jogo">{formatarHoras(jogo.horasJogadas)}</span>
+                    </button>
+                  )
+                })}
+              </div>
+
+              <div className="painel-detalhes-jogo">
+                {jogoSelecionado ? (
+                  <DetalhesJogo jogo={jogoSelecionado} />
+                ) : (
+                  <p className="mensagem">Selecione um jogo para ver os detalhes.</p>
+                )}
+              </div>
             </div>
           )}
         </>
@@ -128,5 +151,42 @@ export default function BibliotecaPage() {
 
       {erro && !conta && <p className="mensagem mensagem-erro">{erro}</p>}
     </LayoutApp>
+  )
+}
+
+function DetalhesJogo({ jogo }) {
+  const completo = jogo.conquistasTotais > 0 && jogo.conquistasObtidas === jogo.conquistasTotais
+
+  return (
+    <div className="detalhes-jogo">
+      <img
+        src={jogo.imagem || 'https://placehold.co/160x160?text=%20'}
+        alt={jogo.nome}
+        className="detalhes-jogo-capa"
+      />
+      <h2 className="detalhes-jogo-nome">
+        <IconeSteam />
+        {jogo.nome}
+      </h2>
+      <div className="detalhes-jogo-estatisticas">
+        <div className="detalhes-jogo-estatistica">
+          <span className="detalhes-jogo-estatistica-rotulo">Horas jogadas</span>
+          <span className="detalhes-jogo-estatistica-valor detalhes-jogo-estatistica-valor-horas">
+            {formatarHoras(jogo.horasJogadas)}
+          </span>
+        </div>
+        {jogo.conquistasTotais > 0 && (
+          <div className="detalhes-jogo-estatistica">
+            <span className="detalhes-jogo-estatistica-rotulo">Conquistas</span>
+            <span
+              className={`detalhes-jogo-estatistica-valor ${completo ? 'conquistas-completo' : 'conquistas-incompleto'}`}
+            >
+              {completo && <IconeConquista100 />}
+              {jogo.conquistasObtidas}/{jogo.conquistasTotais}
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
   )
 }

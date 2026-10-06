@@ -165,23 +165,6 @@
   color: #f2f2f2;
 }
 
-.botao-editar-perfil,
-.botao-sair-topo {
-  background: transparent;
-  border: 1px solid #2a2e37;
-  color: #9aa0ab;
-  border-radius: 8px;
-  padding: 6px 12px;
-  font-size: 13px;
-  cursor: pointer;
-}
-
-.botao-editar-perfil:hover,
-.botao-sair-topo:hover {
-  border-color: #7dd3fc;
-  color: #7dd3fc;
-}
-
 .formulario-perfil {
   display: flex;
   flex-direction: column;
@@ -220,13 +203,19 @@
   color: #9aa0ab;
 }
 
-.campo input {
+.campo input,
+.campo-textarea {
   background: #0f1115;
   border: 1px solid #2a2e37;
   border-radius: 8px;
   padding: 10px 12px;
   color: #f2f2f2;
   font-size: 15px;
+}
+
+.campo-textarea {
+  font-family: inherit;
+  resize: vertical;
 }
 
 .campo input:disabled {
@@ -337,12 +326,19 @@
   gap: 10px;
 }
 
+.biblioteca-layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+}
+
 .lista-jogos {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  max-width: 640px;
-  max-height: 420px;
+  width: 420px;
+  flex-shrink: 0;
+  max-height: 65vh;
   overflow-y: auto;
   margin-bottom: 16px;
 }
@@ -351,10 +347,93 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  width: 100%;
   background: #0f1115;
   border: 1px solid #2a2e37;
   border-radius: 8px;
   padding: 8px 12px;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.linha-jogo:hover {
+  border-color: #3a3f4b;
+}
+
+.linha-jogo-selecionada,
+.linha-jogo-selecionada:hover {
+  border-color: #7dd3fc;
+  background: #161a22;
+}
+
+.painel-detalhes-jogo {
+  flex: 1;
+  background: #1a1d24;
+  border: 1px solid #2a2e37;
+  border-radius: 12px;
+  padding: 24px;
+  min-height: 320px;
+}
+
+.detalhes-jogo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.detalhes-jogo-capa {
+  width: 120px;
+  height: 120px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.detalhes-jogo-nome {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 20px;
+  color: #f2f2f2;
+}
+
+.detalhes-jogo-estatisticas {
+  display: flex;
+  gap: 32px;
+}
+
+.detalhes-jogo-estatistica {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detalhes-jogo-estatistica-rotulo {
+  font-size: 12px;
+  color: #9aa0ab;
+}
+
+.detalhes-jogo-estatistica-valor {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #f2f2f2;
+}
+
+.detalhes-jogo-estatistica-valor.detalhes-jogo-estatistica-valor-horas {
+  color: #7dd3fc;
+}
+
+.detalhes-jogo-estatistica-valor.conquistas-completo {
+  color: #d4af37;
+}
+
+.detalhes-jogo-estatistica-valor.conquistas-incompleto {
+  color: #9aa0ab;
 }
 
 .icone-jogo {
@@ -414,7 +493,7 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: 16px;
-  max-width: 640px;
+  max-width: 900px;
   margin-bottom: 8px;
 }
 
@@ -429,6 +508,57 @@
   font-size: 13px;
   color: #9aa0ab;
   white-space: nowrap;
+}
+
+.perfil-hero {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  max-width: 640px;
+  background: #1a1d24;
+  border: 1px solid #2a2e37;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 28px;
+}
+
+.perfil-avatar-grande {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #2a2e37;
+  flex-shrink: 0;
+}
+
+.perfil-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.perfil-nome {
+  margin: 0;
+  font-size: 24px;
+  color: #f2f2f2;
+}
+
+.perfil-descricao {
+  margin: 0;
+  color: #d1d5db;
+  font-size: 14px;
+  white-space: pre-wrap;
+}
+
+.subtitulo-secao {
+  margin: 0 0 4px;
+  font-size: 18px;
+  color: #f2f2f2;
+}
+
+.cartao-formulario-perfil {
+  margin: 0 0 28px;
+  text-align: left;
 }
 
 .lista-destaques {
@@ -453,6 +583,27 @@
   margin-bottom: 12px;
   color: #f2f2f2;
   font-size: 14px;
+}
+
+.acoes-cartao-destaque {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.botao-editar-destaque {
+  background: transparent;
+  border: 1px solid #2a2e37;
+  color: #9aa0ab;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.botao-editar-destaque:hover {
+  border-color: #7dd3fc;
+  color: #7dd3fc;
 }
 
 .botao-remover-destaque {
@@ -566,6 +717,38 @@
   cursor: pointer;
 }
 
+.conteudo-destaque-imagem {
+  display: flex;
+  justify-content: center;
+}
+
+.imagem-destaque-grande {
+  max-width: 100%;
+  max-height: 320px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.imagem-destaque-preview {
+  max-width: 100%;
+  max-height: 160px;
+  border-radius: 8px;
+  object-fit: cover;
+  align-self: flex-start;
+}
+
+.conteudo-destaque-texto {
+  margin: 0;
+  color: #f2f2f2;
+  font-size: 14px;
+  white-space: pre-wrap;
+}
+
+.jogo-da-conquista {
+  color: #9aa0ab;
+  font-weight: 400;
+}
+
 .acoes-formulario-destaque {
   display: flex;
   gap: 10px;
@@ -586,4 +769,116 @@
   color: #f2f2f2;
   font-size: 13px;
   cursor: pointer;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 100;
+}
+
+.modal-caixa {
+  background: #1a1d24;
+  border: 1px solid #2a2e37;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 640px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+}
+
+.modal-cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #2a2e37;
+  color: #f2f2f2;
+  font-size: 15px;
+}
+
+.modal-conteudo {
+  padding: 16px 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.modal-lista-jogos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.modal-item-jogo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #0f1115;
+  border: 1px solid #2a2e37;
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: #f2f2f2;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.modal-item-jogo:hover {
+  border-color: #7dd3fc;
+}
+
+.modal-icone-jogo {
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.modal-lista-conquistas {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.modal-item-conquista {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #0f1115;
+  border: 1px solid #2a2e37;
+  border-radius: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.modal-icone-conquista {
+  width: 48px;
+  height: 48px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.modal-info-conquista {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+  color: #f2f2f2;
+}
+
+.modal-descricao-conquista {
+  font-size: 12px;
+  color: #9aa0ab;
+  font-weight: 400;
 }
