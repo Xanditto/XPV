@@ -18,6 +18,17 @@ evoluir para um TCC.
 | 4 | Personalização do perfil 2 (descrição, mais tipos de destaque, edição) e detalhes de jogos na Biblioteca | ✅ Na `main` — [PR #14](../../pull/14) |
 | 5 | Avaliação de usuários e recomendação de jogos | 🔎 Em revisão — [PR #17](../../pull/17) e [PR #18](../../pull/18) |
 
+### 🔗 Acesso ao vivo (temporário)
+
+Enquanto eu estiver testando com o meu computador ligado, dá pra acessar
+direto, sem precisar rodar nada:
+
+**https://currently-volvo-enrolled-margin.trycloudflare.com**
+
+Esse link só funciona enquanto meu PC, o backend e o túnel estiverem
+rodando ao mesmo tempo — se não abrir, é porque eu já encerrei a sessão de
+testes. Pra testar de verdade, veja "Como rodar o projeto localmente" abaixo.
+
 ## Estrutura
 
 - [`Sistemas A/`](Sistemas%20A) — entregas da disciplina de Sistemas A.
