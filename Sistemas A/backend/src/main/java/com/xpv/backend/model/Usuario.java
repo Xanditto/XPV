@@ -40,6 +40,11 @@ public class Usuario {
     /** Hash bcrypt da senha escolhida pelo usuário após o primeiro login com Google. Nulo até então. */
     private String senhaHash;
 
+    /** Descrição livre que o usuário escreve sobre si, exibida no perfil (como a "Resumo" da Steam). */
+    @Lob
+    @Column(columnDefinition = "TEXT")
+    private String descricao;
+
     @Column(nullable = false)
     private Instant criadoEm = Instant.now();
 

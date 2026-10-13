@@ -40,6 +40,9 @@ public class ProfileController {
         if (request.avatar() != null && !request.avatar().isBlank()) {
             usuario.setAvatar(request.avatar());
         }
+        if (request.descricao() != null) {
+            usuario.setDescricao(request.descricao());
+        }
 
         return UsuarioResponse.from(usuarioRepository.save(usuario));
     }

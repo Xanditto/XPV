@@ -7,6 +7,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
@@ -39,10 +40,32 @@ public class DestaqueJogo {
     @Column(nullable = false)
     private int ordem;
 
+    /**
+     * Usados só por CONQUISTAS_ESPECIFICAS: identificam qual conquista do
+     * jogo foi escolhida. O nome/ícone são copiados da Steam no momento da
+     * escolha (não mudam depois) para não precisar consultar a Steam de novo
+     * toda vez que o perfil for exibido. Nulos nos demais tipos de destaque,
+     * onde a linha representa o jogo inteiro.
+     */
+    private String conquistaChave;
+    private String conquistaNome;
+
+    @Lob
+    @Column(columnDefinition = "TEXT")
+    private String conquistaIcone;
+
     public DestaqueJogo(Destaque destaque, Long contaPlataformaId, Long appId, int ordem) {
         this.destaque = destaque;
         this.contaPlataformaId = contaPlataformaId;
         this.appId = appId;
         this.ordem = ordem;
+    }
+
+    public DestaqueJogo(Destaque destaque, Long contaPlataformaId, Long appId, int ordem,
+                         String conquistaChave, String conquistaNome, String conquistaIcone) {
+        this(destaque, contaPlataformaId, appId, ordem);
+        this.conquistaChave = conquistaChave;
+        this.conquistaNome = conquistaNome;
+        this.conquistaIcone = conquistaIcone;
     }
 }

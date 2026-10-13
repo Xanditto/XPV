@@ -14,6 +14,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.Instant;
+
 /**
  * Um jogo que o usuário possui numa conta de plataforma vinculada (por
  * enquanto, só a Steam sincroniza esses dados). Cada linha é o jogo de UMA
@@ -57,8 +59,29 @@ public class Jogo {
     @Column(nullable = false, columnDefinition = "integer not null default 0")
     private int conquistasTotais;
 
+    /** Quando o usuário jogou essa pela última vez. Nulo se a Steam nunca informou (jogo nunca aberto, por exemplo). */
+    private Instant ultimoAcesso;
+
+    @Column(nullable = false, columnDefinition = "float not null default 0")
+    private double horasWindows;
+
+    @Column(nullable = false, columnDefinition = "float not null default 0")
+    private double horasMac;
+
+    @Column(nullable = false, columnDefinition = "float not null default 0")
+    private double horasLinux;
+
+    @Column(nullable = false, columnDefinition = "float not null default 0")
+    private double horasDeck;
+
     public Jogo(ContaPlataforma contaPlataforma, Long appId, String nome, String imagem, double horasJogadas,
                 int conquistasObtidas, int conquistasTotais) {
+        this(contaPlataforma, appId, nome, imagem, horasJogadas, conquistasObtidas, conquistasTotais, null, 0, 0, 0, 0);
+    }
+
+    public Jogo(ContaPlataforma contaPlataforma, Long appId, String nome, String imagem, double horasJogadas,
+                int conquistasObtidas, int conquistasTotais, Instant ultimoAcesso,
+                double horasWindows, double horasMac, double horasLinux, double horasDeck) {
         this.contaPlataforma = contaPlataforma;
         this.appId = appId;
         this.nome = nome;
@@ -66,5 +89,10 @@ public class Jogo {
         this.horasJogadas = horasJogadas;
         this.conquistasObtidas = conquistasObtidas;
         this.conquistasTotais = conquistasTotais;
+        this.ultimoAcesso = ultimoAcesso;
+        this.horasWindows = horasWindows;
+        this.horasMac = horasMac;
+        this.horasLinux = horasLinux;
+        this.horasDeck = horasDeck;
     }
 }
