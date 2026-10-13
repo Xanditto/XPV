@@ -636,6 +636,40 @@
   white-space: nowrap;
 }
 
+.controles-biblioteca {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.campo-busca-biblioteca {
+  background: #0f1115;
+  border: 1px solid #2a2e37;
+  border-radius: 8px;
+  padding: 6px 10px;
+  color: #f2f2f2;
+  font-size: 13px;
+  width: 200px;
+}
+
+.botao-direcao-ordenacao {
+  background: #0f1115;
+  border: 1px solid #2a2e37;
+  border-radius: 8px;
+  color: #9aa0ab;
+  width: 30px;
+  height: 30px;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.botao-direcao-ordenacao:hover {
+  border-color: #7dd3fc;
+  color: #7dd3fc;
+}
+
 .perfil-hero {
   display: flex;
   align-items: center;

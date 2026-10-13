@@ -6,7 +6,8 @@ import {
   removerAvaliacao,
   salvarAvaliacao,
 } from '../lib/api'
-import { formatarHoras } from '../lib/formato'
+import { formatarProgresso } from '../lib/formato'
+import { useFiltroJogos } from '../lib/useFiltroJogos'
 import LayoutApp from '../components/LayoutApp'
 import Modal from '../components/Modal'
 import CapaJogo from '../components/CapaJogo'
@@ -23,7 +24,6 @@ export default function AvaliacoesPage() {
   const [modalAberto, setModalAberto] = useState(false)
   const [editandoId, setEditandoId] = useState(null)
   const [jogoAppId, setJogoAppId] = useState('')
-  const [filtroJogo, setFiltroJogo] = useState('')
   const [nota, setNota] = useState(0)
   const [resenha, setResenha] = useState('')
   const [salvando, setSalvando] = useState(false)
@@ -44,18 +44,15 @@ export default function AvaliacoesPage() {
   }, [])
 
   const jogosElegiveis = useMemo(() => jogos.filter((jogo) => jogo.horasJogadas > 0), [jogos])
-  const jogosFiltrados = useMemo(
-    () => jogosElegiveis.filter((jogo) => jogo.nome.toLowerCase().includes(filtroJogo.toLowerCase())),
-    [jogosElegiveis, filtroJogo],
-  )
+  const [filtroJogo, setFiltroJogo, jogosFiltrados] = useFiltroJogos(jogosElegiveis)
   const avaliacaoPorAppId = useMemo(() => {
     const mapa = {}
     for (const avaliacao of avaliacoes) mapa[avaliacao.appId] = avaliacao
     return mapa
   }, [avaliacoes])
-  const horasPorAppId = useMemo(() => {
+  const jogoPorAppId = useMemo(() => {
     const mapa = {}
-    for (const jogo of jogos) mapa[jogo.appId] = jogo.horasJogadas
+    for (const jogo of jogos) mapa[jogo.appId] = jogo
     return mapa
   }, [jogos])
 
@@ -166,8 +163,8 @@ export default function AvaliacoesPage() {
                   <strong>
                     <IconeSteam />
                     {avaliacao.jogoNome}
-                    {horasPorAppId[avaliacao.appId] != null && (
-                      <span className="horas-jogo-avaliacao">({formatarHoras(horasPorAppId[avaliacao.appId])})</span>
+                    {jogoPorAppId[avaliacao.appId] && (
+                      <span className="horas-jogo-avaliacao">({formatarProgresso(jogoPorAppId[avaliacao.appId])})</span>
                     )}
                   </strong>
                   <div className="acoes-cartao-destaque">
@@ -201,7 +198,7 @@ export default function AvaliacoesPage() {
                 <div className="modal-item-jogo modal-item-jogo-travado">
                   <CapaJogo jogo={jogoEscolhido} className="modal-icone-jogo" />
                   <span>
-                    {jogoEscolhido.nome} ({formatarHoras(jogoEscolhido.horasJogadas)})
+                    {jogoEscolhido.nome} ({formatarProgresso(jogoEscolhido)})
                   </span>
                 </div>
               )
@@ -226,7 +223,7 @@ export default function AvaliacoesPage() {
                       >
                         <CapaJogo jogo={jogo} className="modal-icone-jogo" />
                         <span>
-                          {jogo.nome} ({formatarHoras(jogo.horasJogadas)})
+                          {jogo.nome} ({formatarProgresso(jogo)})
                           {avaliacaoPorAppId[jogo.appId] ? ' — já avaliado' : ''}
                         </span>
                       </button>

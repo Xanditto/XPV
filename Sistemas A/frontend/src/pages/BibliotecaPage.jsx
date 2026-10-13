@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { buscarDetalhesLojaDoJogo, listarContas, listarJogos, sincronizarJogos } from '../lib/api'
 import { formatarHoras } from '../lib/formato'
+import { useFiltroJogos } from '../lib/useFiltroJogos'
 import LayoutApp from '../components/LayoutApp'
 import CapaJogo from '../components/CapaJogo'
 import { IconeConquista100, IconeSteam } from '../components/Icones'
@@ -10,18 +11,33 @@ function porcentagemConquistas(jogo) {
   return jogo.conquistasObtidas / jogo.conquistasTotais
 }
 
+function dataOuMinimo(dataIso) {
+  return dataIso ? new Date(dataIso).getTime() : -Infinity
+}
+
+// Toda comparação aqui é "crescente" (a menor/mais antigo primeiro) - a
+// direção escolhida pela pessoa (crescente/decrescente) inverte o resultado
+// por fora, então não precisa duplicar a lógica de ordenação pros dois lados.
 const ORDENACOES = {
   horas: {
     rotulo: 'Horas jogadas',
-    comparar: (a, b) => b.horasJogadas - a.horasJogadas,
+    comparar: (a, b) => a.horasJogadas - b.horasJogadas,
+    direcaoPadrao: 'desc',
   },
   conquistas: {
     rotulo: 'Porcentagem de conquistas',
-    comparar: (a, b) => porcentagemConquistas(b) - porcentagemConquistas(a),
+    comparar: (a, b) => porcentagemConquistas(a) - porcentagemConquistas(b),
+    direcaoPadrao: 'desc',
+  },
+  ultimoAcesso: {
+    rotulo: 'Última vez jogado',
+    comparar: (a, b) => dataOuMinimo(a.ultimoAcesso) - dataOuMinimo(b.ultimoAcesso),
+    direcaoPadrao: 'desc',
   },
   alfabetica: {
     rotulo: 'Ordem alfabética',
     comparar: (a, b) => a.nome.localeCompare(b.nome, 'pt-BR'),
+    direcaoPadrao: 'asc',
   },
 }
 
@@ -48,6 +64,7 @@ export default function BibliotecaPage() {
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState('')
   const [ordenacao, setOrdenacao] = useState('horas')
+  const [direcao, setDirecao] = useState(ORDENACOES.horas.direcaoPadrao)
   const [jogoSelecionadoAppId, setJogoSelecionadoAppId] = useState(null)
 
   useEffect(() => {
@@ -76,10 +93,17 @@ export default function BibliotecaPage() {
       .finally(() => setCarregando(false))
   }, [])
 
-  const jogosOrdenados = useMemo(
-    () => [...jogos].sort(ORDENACOES[ordenacao].comparar),
-    [jogos, ordenacao],
-  )
+  const [filtroJogo, setFiltroJogo, jogosFiltrados] = useFiltroJogos(jogos)
+
+  const jogosOrdenados = useMemo(() => {
+    const ordenados = [...jogosFiltrados].sort(ORDENACOES[ordenacao].comparar)
+    return direcao === 'asc' ? ordenados : ordenados.reverse()
+  }, [jogosFiltrados, ordenacao, direcao])
+
+  function handleTrocarOrdenacao(chave) {
+    setOrdenacao(chave)
+    setDirecao(ORDENACOES[chave].direcaoPadrao)
+  }
 
   const jogoSelecionado = jogos.find((jogo) => jogo.appId === jogoSelecionadoAppId) || null
 
@@ -88,16 +112,34 @@ export default function BibliotecaPage() {
       <div className="cabecalho-biblioteca">
         <h1 className="titulo-pagina">Biblioteca de Jogos</h1>
         {jogos.length > 0 && (
-          <label className="campo-ordenacao">
-            <span>Ordenar por</span>
-            <select value={ordenacao} onChange={(e) => setOrdenacao(e.target.value)}>
-              {Object.entries(ORDENACOES).map(([chave, { rotulo }]) => (
-                <option key={chave} value={chave}>
-                  {rotulo}
-                </option>
-              ))}
-            </select>
-          </label>
+          <div className="controles-biblioteca">
+            <input
+              type="text"
+              className="campo-busca-biblioteca"
+              value={filtroJogo}
+              onChange={(e) => setFiltroJogo(e.target.value)}
+              placeholder="Buscar jogo pelo nome..."
+            />
+            <label className="campo-ordenacao">
+              <span>Ordenar por</span>
+              <select value={ordenacao} onChange={(e) => handleTrocarOrdenacao(e.target.value)}>
+                {Object.entries(ORDENACOES).map(([chave, { rotulo }]) => (
+                  <option key={chave} value={chave}>
+                    {rotulo}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button
+              type="button"
+              className="botao-direcao-ordenacao"
+              onClick={() => setDirecao((atual) => (atual === 'asc' ? 'desc' : 'asc'))}
+              title={direcao === 'asc' ? 'Ordem crescente' : 'Ordem decrescente'}
+              aria-label={direcao === 'asc' ? 'Ordem crescente' : 'Ordem decrescente'}
+            >
+              {direcao === 'asc' ? '↑' : '↓'}
+            </button>
+          </div>
         )}
       </div>
 
