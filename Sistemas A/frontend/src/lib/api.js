@@ -176,3 +176,10 @@ export async function salvarDestaques(destaques) {
   })
   return tratarResposta(response)
 }
+
+export async function buscarRecomendacoes() {
+  const response = await fetch(`${API_URL}/api/recomendacoes`, {
+    headers: { Authorization: `Bearer ${getSessionToken()}` },
+  })
+  return tratarResposta(response)
+}
