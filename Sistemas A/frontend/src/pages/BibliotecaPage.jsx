@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { buscarDetalhesLojaDoJogo, listarContas, listarJogos, sincronizarJogos } from '../lib/api'
-import { formatarHoras } from '../lib/formato'
+import { corMetacritic, formatarHoras } from '../lib/formato'
 import LayoutApp from '../components/LayoutApp'
 import { IconeConquista100, IconeSteam } from '../components/Icones'
 
@@ -55,12 +55,6 @@ const ORDENACOES = {
 
 function formatarData(dataIso) {
   return new Date(dataIso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
-}
-
-function corMetacritic(nota) {
-  if (nota >= 75) return 'detalhes-jogo-metacritic-alta'
-  if (nota >= 50) return 'detalhes-jogo-metacritic-media'
-  return 'detalhes-jogo-metacritic-baixa'
 }
 
 const ROTULOS_SISTEMA = {

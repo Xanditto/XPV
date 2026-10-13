@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { buscarRecomendacoes, listarContas } from '../lib/api'
+import { corMetacritic } from '../lib/formato'
 import LayoutApp from '../components/LayoutApp'
 import CapaJogo from '../components/CapaJogo'
 
@@ -72,8 +73,16 @@ export default function RecomendacoesPage() {
                   rel="noreferrer"
                   className="cartao-recomendacao"
                 >
-                  <CapaJogo jogo={jogo} className="capa-recomendacao" />
+                  <div className="capa-recomendacao-wrapper">
+                    <CapaJogo jogo={jogo} className="capa-recomendacao" />
+                    {jogo.notaMetacritic != null && (
+                      <span className={`detalhes-jogo-metacritic selo-metacritic-recomendacao ${corMetacritic(jogo.notaMetacritic)}`}>
+                        {jogo.notaMetacritic}
+                      </span>
+                    )}
+                  </div>
                   <span className="nome-recomendacao">{jogo.nome}</span>
+                  <span className="preco-recomendacao">{jogo.gratuito ? 'Grátis' : jogo.precoFormatado}</span>
                 </a>
               ))}
             </div>
