@@ -23,7 +23,7 @@ evoluir para um TCC.
 Enquanto eu estiver testando com o meu computador ligado, dá pra acessar
 direto, sem precisar rodar nada:
 
-**https://currently-volvo-enrolled-margin.trycloudflare.com**
+**https://cook-encountered-gregory-defines.trycloudflare.com**
 
 Esse link só funciona enquanto meu PC, o backend e o túnel estiverem
 rodando ao mesmo tempo — se não abrir, é porque eu já encerrei a sessão de
