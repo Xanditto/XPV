@@ -176,3 +176,34 @@ export async function salvarDestaques(destaques) {
   })
   return tratarResposta(response)
 }
+
+export async function listarAvaliacoes() {
+  const response = await fetch(`${API_URL}/api/avaliacoes`, {
+    headers: { Authorization: `Bearer ${getSessionToken()}` },
+  })
+  return tratarResposta(response)
+}
+
+export async function salvarAvaliacao({ contaPlataformaId, appId, nota, resenha }) {
+  const response = await fetch(`${API_URL}/api/avaliacoes`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${getSessionToken()}`,
+    },
+    body: JSON.stringify({ contaPlataformaId, appId, nota, resenha }),
+  })
+  return tratarResposta(response)
+}
+
+export async function removerAvaliacao(id) {
+  const response = await fetch(`${API_URL}/api/avaliacoes/${id}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${getSessionToken()}` },
+  })
+  if (!response.ok) {
+    const erro = await response.json().catch(() => ({}))
+    const mensagemValidacao = erro.errors?.[0]?.defaultMessage
+    throw new Error(mensagemValidacao || erro.message || `Erro na requisição (${response.status})`)
+  }
+}

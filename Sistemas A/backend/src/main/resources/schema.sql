@@ -46,3 +46,15 @@ CREATE TABLE IF NOT EXISTS destaque_jogos (
     conquista_nome VARCHAR(255),
     conquista_icone TEXT
 );
+
+-- Mesmo motivo acima (Issue #15): avaliações pessoais de jogos.
+CREATE TABLE IF NOT EXISTS avaliacoes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    usuario_id BIGINT NOT NULL,
+    conta_plataforma_id BIGINT NOT NULL,
+    app_id BIGINT NOT NULL,
+    nota FLOAT NOT NULL,
+    resenha TEXT,
+    data_criacao TIMESTAMP NOT NULL,
+    UNIQUE (usuario_id, conta_plataforma_id, app_id)
+);

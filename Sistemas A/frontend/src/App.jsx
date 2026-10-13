@@ -6,6 +6,7 @@ import ProfilePage from './pages/ProfilePage'
 import ContasPage from './pages/ContasPage'
 import BibliotecaPage from './pages/BibliotecaPage'
 import MeuPerfilPage from './pages/MeuPerfilPage'
+import AvaliacoesPage from './pages/AvaliacoesPage'
 import ProtectedRoute from './components/ProtectedRoute'
 import { getSessionToken } from './lib/api'
 import './App.css'
@@ -59,6 +60,14 @@ export default function App() {
         element={
           <ProtectedRoute>
             <MeuPerfilPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/avaliacoes"
+        element={
+          <ProtectedRoute>
+            <AvaliacoesPage />
           </ProtectedRoute>
         }
       />
