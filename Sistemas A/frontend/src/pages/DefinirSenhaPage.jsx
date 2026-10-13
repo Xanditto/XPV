@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { definirSenha } from '../lib/api'
+import { mensagemDeErroDeConexao } from '../lib/erros'
 
 export default function DefinirSenhaPage() {
   const navigate = useNavigate()
@@ -23,7 +24,7 @@ export default function DefinirSenhaPage() {
       await definirSenha(senha)
       navigate('/inicio')
     } catch (err) {
-      setErro(err.message || 'Não foi possível definir a senha.')
+      setErro(mensagemDeErroDeConexao(err, 'Não foi possível definir a senha.'))
     } finally {
       setSalvando(false)
     }
