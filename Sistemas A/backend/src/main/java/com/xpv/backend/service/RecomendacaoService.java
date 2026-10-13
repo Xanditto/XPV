@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
 public class RecomendacaoService {
 
     private static final int MAXIMO_DE_UMA_CHANCE = 5;
-    private static final int MAXIMO_CANDIDATOS_DE_UMA_CHANCE = 20;
+    private static final int MAXIMO_CANDIDATOS_DE_UMA_CHANCE = 60;
     private static final int TOTAL_RECOMENDACOES = 20;
     private static final int JOGOS_PARA_PERFIL_DE_GENERO = 15;
     private static final int GENEROS_NO_PERFIL = 3;
@@ -76,7 +76,13 @@ public class RecomendacaoService {
         return new RecomendacaoResponse(deUmaChance, recomendacoes);
     }
 
-    /** Pega até MAXIMO_DE_UMA_CHANCE jogos nunca jogados, priorizando um de cada gênero diferente. */
+    /**
+     * Pega até MAXIMO_DE_UMA_CHANCE jogos nunca jogados, priorizando um de cada gênero diferente.
+     * Considera TODOS os gêneros do jogo (não só o primeiro) pra decidir se ele traz diversidade -
+     * muitos clássicos da Valve (Counter-Strike, Half-Life, Portal...) são listados como "Action"
+     * primeiro no SteamSpy, e olhar só o primeiro gênero fazia eles colidirem entre si e sobrarem
+     * poucos gêneros realmente diferentes.
+     */
     private List<JogoResponse> escolherDeUmaChance(List<Jogo> todos) {
         List<Jogo> naoJogados = todos.stream()
                 .filter(jogo -> jogo.getHorasJogadas() <= 0)
@@ -90,10 +96,12 @@ public class RecomendacaoService {
                 break;
             }
             SteamSpyService.JogoSteamSpy detalhes = steamSpyService.buscarDetalhes(jogo.getAppId());
-            String genero = (detalhes != null && !detalhes.generos().isEmpty())
-                    ? detalhes.generos().get(0).toLowerCase() : null;
-            if (genero == null || generosUsados.add(genero)) {
+            List<String> generos = detalhes == null ? List.of() : detalhes.generos();
+            boolean trazGeneroNovo = generos.isEmpty()
+                    || generos.stream().map(String::toLowerCase).anyMatch(g -> !generosUsados.contains(g));
+            if (trazGeneroNovo) {
                 escolhidos.add(jogo);
+                generos.forEach(g -> generosUsados.add(g.toLowerCase()));
             }
         }
 
