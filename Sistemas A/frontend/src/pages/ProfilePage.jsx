@@ -11,6 +11,7 @@ import {
   logout,
   salvarDestaques,
 } from '../lib/api'
+import { mensagemDeErroDeConexao } from '../lib/erros'
 import LayoutApp from '../components/LayoutApp'
 import Modal from '../components/Modal'
 import {
@@ -108,11 +109,7 @@ export default function ProfilePage() {
           navigate('/login')
           return
         }
-        setErroCarregamentoPerfil(
-          'Não foi possível atualizar os dados do perfil - provavelmente uma instabilidade passageira do ' +
-            'serviço de túnel (Cloudflare) usado para testes. Espere alguns segundos e atualize a página ' +
-            '(F5). Se persistir, feche e abra o site novamente.',
-        )
+        setErroCarregamentoPerfil(mensagemDeErroDeConexao(err, 'Não foi possível atualizar os dados do perfil.'))
       })
   }, [navigate])
 
@@ -126,7 +123,7 @@ export default function ProfilePage() {
           setJogos(await listarJogos(contaSteam.id))
         }
       })
-      .catch((err) => setErroDestaques(err.message || 'Não foi possível carregar seus destaques.'))
+      .catch((err) => setErroDestaques(mensagemDeErroDeConexao(err, 'Não foi possível carregar seus destaques.')))
       .finally(() => setCarregandoDestaques(false))
   }, [])
 
@@ -170,7 +167,7 @@ export default function ProfilePage() {
       setUsuario(atualizado)
       setMensagem('Perfil atualizado com sucesso!')
     } catch (err) {
-      setErro(err.message || 'Não foi possível salvar o perfil.')
+      setErro(mensagemDeErroDeConexao(err, 'Não foi possível salvar o perfil.'))
     } finally {
       setSalvando(false)
     }
@@ -223,7 +220,7 @@ export default function ProfilePage() {
       setDestaques(atualizados)
       limparFormularioDestaque()
     } catch (err) {
-      setErroDestaques(err.message || 'Não foi possível salvar os destaques.')
+      setErroDestaques(mensagemDeErroDeConexao(err, 'Não foi possível salvar os destaques.'))
     } finally {
       setSalvandoDestaque(false)
     }
@@ -288,7 +285,7 @@ export default function ProfilePage() {
       const conquistas = await listarConquistasDoJogo(conta.id, appId)
       setConquistasDoJogo(conquistas)
     } catch (err) {
-      setErroDestaques(err.message || 'Não foi possível carregar as conquistas desse jogo.')
+      setErroDestaques(mensagemDeErroDeConexao(err, 'Não foi possível carregar as conquistas desse jogo.'))
     } finally {
       setCarregandoConquistas(false)
     }

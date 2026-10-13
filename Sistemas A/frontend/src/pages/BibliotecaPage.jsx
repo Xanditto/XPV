@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { buscarDetalhesLojaDoJogo, listarContas, listarJogos, sincronizarJogos } from '../lib/api'
 import { corMetacritic, formatarHoras } from '../lib/formato'
+import { mensagemDeErroDeConexao } from '../lib/erros'
 import LayoutApp from '../components/LayoutApp'
 import { IconeConquista100, IconeSteam } from '../components/Icones'
 
@@ -94,7 +95,7 @@ export default function BibliotecaPage() {
           setJogoSelecionadoAppId(jogosCarregados[0].appId)
         }
       })
-      .catch((err) => setErro(err.message || 'Não foi possível carregar a biblioteca.'))
+      .catch((err) => setErro(mensagemDeErroDeConexao(err, 'Não foi possível carregar a biblioteca.')))
       .finally(() => setCarregando(false))
   }, [])
 
@@ -206,7 +207,7 @@ function DetalhesJogo({ jogo, contaId }) {
     setCarregandoLoja(true)
     buscarDetalhesLojaDoJogo(contaId, jogo.appId)
       .then(setDetalhesLoja)
-      .catch((err) => setErroLoja(err.message || 'Não foi possível carregar os detalhes da loja.'))
+      .catch((err) => setErroLoja(mensagemDeErroDeConexao(err, 'Não foi possível carregar os detalhes da loja.')))
       .finally(() => setCarregandoLoja(false))
   }, [contaId, jogo.appId])
 

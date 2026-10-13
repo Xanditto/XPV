@@ -7,6 +7,7 @@ import {
   listarContas,
   vincularRiot,
 } from '../lib/api'
+import { mensagemDeErroDeConexao } from '../lib/erros'
 
 const NOMES_PLATAFORMA = {
   steam: 'Steam',
@@ -45,7 +46,7 @@ export default function ContasPage() {
   useEffect(() => {
     listarContas()
       .then(setContas)
-      .catch((err) => setErro(err.message || 'Não foi possível carregar suas contas.'))
+      .catch((err) => setErro(mensagemDeErroDeConexao(err, 'Não foi possível carregar suas contas.')))
       .finally(() => setCarregando(false))
   }, [])
 
@@ -54,7 +55,7 @@ export default function ContasPage() {
       await desvincularConta(id)
       setContas((atual) => atual.filter((c) => c.id !== id))
     } catch (err) {
-      setErro(err.message || 'Não foi possível desvincular essa conta.')
+      setErro(mensagemDeErroDeConexao(err, 'Não foi possível desvincular essa conta.'))
     }
   }
 
@@ -67,7 +68,7 @@ export default function ContasPage() {
       setContas((atual) => [...atual.filter((c) => c.plataforma !== 'Riot Games'), conta])
       setRiotId('')
     } catch (err) {
-      setErro(err.message || 'Não foi possível vincular esse Riot ID.')
+      setErro(mensagemDeErroDeConexao(err, 'Não foi possível vincular esse Riot ID.'))
     } finally {
       setVinculandoRiot(false)
     }

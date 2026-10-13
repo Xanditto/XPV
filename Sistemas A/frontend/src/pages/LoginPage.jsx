@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { loginComGoogle, loginComSenha } from '../lib/api'
+import { mensagemDeErroDeConexao } from '../lib/erros'
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID
 
@@ -24,7 +25,7 @@ export default function LoginPage() {
       await loginComSenha(identificador, senha)
       navigate('/inicio')
     } catch (err) {
-      setErroLogin(err.message || 'Não foi possível entrar.')
+      setErroLogin(mensagemDeErroDeConexao(err, 'Não foi possível entrar.'))
     } finally {
       setEntrando(false)
     }
@@ -38,7 +39,7 @@ export default function LoginPage() {
         const data = await loginComGoogle(response.credential)
         navigate(data.precisaDefinirSenha ? '/definir-senha' : '/inicio')
       } catch (err) {
-        setErroGoogle(err.message || 'Não foi possível entrar com o Google.')
+        setErroGoogle(mensagemDeErroDeConexao(err, 'Não foi possível entrar com o Google.'))
       } finally {
         setCarregandoGoogle(false)
       }

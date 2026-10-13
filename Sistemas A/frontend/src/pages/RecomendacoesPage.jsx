@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { buscarRecomendacoes, listarContas } from '../lib/api'
 import { corMetacritic } from '../lib/formato'
+import { mensagemDeErroDeConexao } from '../lib/erros'
 import LayoutApp from '../components/LayoutApp'
 import CapaJogo from '../components/CapaJogo'
 
@@ -23,7 +24,7 @@ export default function RecomendacoesPage() {
         setDeUmaChance(dados.deUmaChance)
         setRecomendacoes(dados.recomendacoes)
       })
-      .catch((err) => setErro(err.message || 'Não foi possível carregar as recomendações.'))
+      .catch((err) => setErro(mensagemDeErroDeConexao(err, 'Não foi possível carregar as recomendações.')))
       .finally(() => setCarregando(false))
   }, [])
 
