@@ -87,18 +87,32 @@ export default function ProfilePage() {
   const [conquistasDoJogo, setConquistasDoJogo] = useState([])
   const [carregandoConquistas, setCarregandoConquistas] = useState(false)
   const [conquistasEscolhidas, setConquistasEscolhidas] = useState([])
+  const [erroCarregamentoPerfil, setErroCarregamentoPerfil] = useState('')
 
   useEffect(() => {
     buscarPerfil()
       .then((dados) => {
+        setErroCarregamentoPerfil('')
         setUsuario(dados)
         setNickname(dados.nickname)
         setAvatarPreview(dados.avatar)
         setDescricao(dados.descricao || '')
       })
-      .catch(() => {
-        logout()
-        navigate('/login')
+      .catch((err) => {
+        // Só forçamos logout quando a sessão é realmente inválida (401).
+        // Qualquer outra falha (ex.: instabilidade do túnel usado nos testes)
+        // só mostra um aviso - a sessão continua guardada no navegador e a
+        // pessoa não perde o login por um soluço de conexão passageiro.
+        if (err.status === 401) {
+          logout()
+          navigate('/login')
+          return
+        }
+        setErroCarregamentoPerfil(
+          'Não foi possível atualizar os dados do perfil - provavelmente uma instabilidade passageira do ' +
+            'serviço de túnel (Cloudflare) usado para testes. Espere alguns segundos e atualize a página ' +
+            '(F5). Se persistir, feche e abra o site novamente.',
+        )
       })
   }, [navigate])
 
@@ -306,6 +320,8 @@ export default function ProfilePage() {
   return (
     <LayoutApp>
       <h1 className="titulo-pagina">Editar Perfil</h1>
+
+      {erroCarregamentoPerfil && <p className="mensagem mensagem-erro">{erroCarregamentoPerfil}</p>}
 
       <div className="cartao cartao-largo cartao-formulario-perfil">
         <form onSubmit={handleSalvar} className="formulario-perfil">

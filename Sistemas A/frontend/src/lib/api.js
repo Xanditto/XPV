@@ -28,7 +28,11 @@ async function tratarResposta(response) {
     // Erros de validação de campo (@Valid) trazem a mensagem específica
     // dentro de "errors", não em "message" (que ali vem genérico).
     const mensagemValidacao = erro.errors?.[0]?.defaultMessage
-    throw new Error(mensagemValidacao || erro.message || `Erro na requisição (${response.status})`)
+    const erroFinal = new Error(mensagemValidacao || erro.message || `Erro na requisição (${response.status})`)
+    // Guardamos o status pra quem chamou poder distinguir "sessão realmente
+    // inválida" (401) de qualquer outra falha (ex.: instabilidade de rede/túnel).
+    erroFinal.status = response.status
+    throw erroFinal
   }
   return response.json()
 }
