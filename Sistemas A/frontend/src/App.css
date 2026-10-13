@@ -962,12 +962,38 @@
   border-color: #7dd3fc;
 }
 
+.modal-item-jogo-selecionado {
+  border-color: #7dd3fc;
+  background: #16222c;
+}
+
+.modal-item-jogo-travado {
+  cursor: default;
+  width: 100%;
+}
+
 .modal-icone-jogo {
   width: 40px;
   height: 40px;
   border-radius: 6px;
   object-fit: cover;
   flex-shrink: 0;
+}
+
+.lista-busca-jogos {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 220px;
+  overflow-y: auto;
+  margin-top: 8px;
+}
+
+.horas-jogo-avaliacao {
+  margin-left: 6px;
+  font-size: 12px;
+  font-weight: 400;
+  color: #9aa0ab;
 }
 
 .modal-lista-conquistas {

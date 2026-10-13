@@ -13,6 +13,7 @@ import {
 } from '../lib/api'
 import LayoutApp from '../components/LayoutApp'
 import Modal from '../components/Modal'
+import CapaJogo from '../components/CapaJogo'
 import {
   CardDestaque,
   LIMITE_POR_TIPO,
@@ -537,7 +538,7 @@ export default function ProfilePage() {
                   className="modal-item-jogo"
                   onClick={() => handleEscolherJogoConquista(String(jogo.appId))}
                 >
-                  <img src={jogo.imagem || 'https://placehold.co/48x48?text=%20'} alt={jogo.nome} className="modal-icone-jogo" />
+                  <CapaJogo jogo={jogo} className="modal-icone-jogo" />
                   <span>{jogo.nome}</span>
                 </button>
               ))}

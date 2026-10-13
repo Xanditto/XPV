@@ -6,8 +6,10 @@ import {
   removerAvaliacao,
   salvarAvaliacao,
 } from '../lib/api'
+import { formatarHoras } from '../lib/formato'
 import LayoutApp from '../components/LayoutApp'
 import Modal from '../components/Modal'
+import CapaJogo from '../components/CapaJogo'
 import SeletorEstrelas from '../components/SeletorEstrelas'
 import { IconeSteam } from '../components/Icones'
 
@@ -21,6 +23,7 @@ export default function AvaliacoesPage() {
   const [modalAberto, setModalAberto] = useState(false)
   const [editandoId, setEditandoId] = useState(null)
   const [jogoAppId, setJogoAppId] = useState('')
+  const [filtroJogo, setFiltroJogo] = useState('')
   const [nota, setNota] = useState(0)
   const [resenha, setResenha] = useState('')
   const [salvando, setSalvando] = useState(false)
@@ -41,15 +44,27 @@ export default function AvaliacoesPage() {
   }, [])
 
   const jogosElegiveis = useMemo(() => jogos.filter((jogo) => jogo.horasJogadas > 0), [jogos])
+  const jogosFiltrados = useMemo(
+    () => jogosElegiveis.filter((jogo) => jogo.nome.toLowerCase().includes(filtroJogo.toLowerCase())),
+    [jogosElegiveis, filtroJogo],
+  )
   const avaliacaoPorAppId = useMemo(() => {
     const mapa = {}
     for (const avaliacao of avaliacoes) mapa[avaliacao.appId] = avaliacao
     return mapa
   }, [avaliacoes])
+  const horasPorAppId = useMemo(() => {
+    const mapa = {}
+    for (const jogo of jogos) mapa[jogo.appId] = jogo.horasJogadas
+    return mapa
+  }, [jogos])
+
+  const jogoEscolhido = jogosElegiveis.find((jogo) => String(jogo.appId) === jogoAppId)
 
   function handleAbrirNovaAvaliacao() {
     setEditandoId(null)
     setJogoAppId('')
+    setFiltroJogo('')
     setNota(0)
     setResenha('')
     setErroModal('')
@@ -142,9 +157,8 @@ export default function AvaliacoesPage() {
         <div className="lista-avaliacoes">
           {avaliacoes.map((avaliacao) => (
             <div key={avaliacao.id} className="cartao-avaliacao">
-              <img
-                src={avaliacao.jogoImagem || 'https://placehold.co/64x64?text=%20'}
-                alt={avaliacao.jogoNome}
+              <CapaJogo
+                jogo={{ appId: avaliacao.appId, nome: avaliacao.jogoNome, imagem: avaliacao.jogoImagem }}
                 className="icone-jogo-avaliacao"
               />
               <div className="conteudo-avaliacao">
@@ -152,6 +166,9 @@ export default function AvaliacoesPage() {
                   <strong>
                     <IconeSteam />
                     {avaliacao.jogoNome}
+                    {horasPorAppId[avaliacao.appId] != null && (
+                      <span className="horas-jogo-avaliacao">({formatarHoras(horasPorAppId[avaliacao.appId])})</span>
+                    )}
                   </strong>
                   <div className="acoes-cartao-destaque">
                     <button type="button" className="botao-editar-destaque" onClick={() => handleEditarAvaliacao(avaliacao)}>
@@ -177,18 +194,48 @@ export default function AvaliacoesPage() {
 
       {modalAberto && (
         <Modal titulo={editandoId !== null ? 'Editar avaliação' : 'Nova avaliação'} onFechar={handleFecharModal}>
-          <label className="campo">
+          <div className="campo">
             <span>Jogo</span>
-            <select value={jogoAppId} onChange={(e) => handleEscolherJogo(e.target.value)} disabled={editandoId !== null}>
-              <option value="">Escolha um jogo</option>
-              {jogosElegiveis.map((jogo) => (
-                <option key={jogo.appId} value={jogo.appId}>
-                  {jogo.nome}
-                  {avaliacaoPorAppId[jogo.appId] ? ' (já avaliado)' : ''}
-                </option>
-              ))}
-            </select>
-          </label>
+            {editandoId !== null ? (
+              jogoEscolhido && (
+                <div className="modal-item-jogo modal-item-jogo-travado">
+                  <CapaJogo jogo={jogoEscolhido} className="modal-icone-jogo" />
+                  <span>
+                    {jogoEscolhido.nome} ({formatarHoras(jogoEscolhido.horasJogadas)})
+                  </span>
+                </div>
+              )
+            ) : (
+              <>
+                <input
+                  type="text"
+                  value={filtroJogo}
+                  onChange={(e) => setFiltroJogo(e.target.value)}
+                  placeholder="Buscar jogo pelo nome..."
+                />
+                <div className="lista-busca-jogos">
+                  {jogosFiltrados.length === 0 ? (
+                    <p className="mensagem">Nenhum jogo encontrado.</p>
+                  ) : (
+                    jogosFiltrados.map((jogo) => (
+                      <button
+                        key={jogo.appId}
+                        type="button"
+                        className={`modal-item-jogo ${String(jogo.appId) === jogoAppId ? 'modal-item-jogo-selecionado' : ''}`}
+                        onClick={() => handleEscolherJogo(String(jogo.appId))}
+                      >
+                        <CapaJogo jogo={jogo} className="modal-icone-jogo" />
+                        <span>
+                          {jogo.nome} ({formatarHoras(jogo.horasJogadas)})
+                          {avaliacaoPorAppId[jogo.appId] ? ' — já avaliado' : ''}
+                        </span>
+                      </button>
+                    ))
+                  )}
+                </div>
+              </>
+            )}
+          </div>
 
           <div className="campo">
             <span>Nota</span>

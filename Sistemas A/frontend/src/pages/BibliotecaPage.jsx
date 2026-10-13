@@ -2,36 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { buscarDetalhesLojaDoJogo, listarContas, listarJogos, sincronizarJogos } from '../lib/api'
 import { formatarHoras } from '../lib/formato'
 import LayoutApp from '../components/LayoutApp'
+import CapaJogo from '../components/CapaJogo'
 import { IconeConquista100, IconeSteam } from '../components/Icones'
-
-// A Steam guarda imagens de capa em alta resolucao no CDN, indexadas só pelo
-// appId (sem precisar de chamada de API) - bem melhores que o icone de
-// 32x32 que a lista de jogos usa. Nem todo jogo (principalmente os mais
-// antigos/obscuros) tem a capa vertical, então cai pro header e depois pro
-// icone pequeno se a imagem de maior qualidade não existir.
-function fontesDeCapa(jogo) {
-  return [
-    `https://cdn.akamai.steamstatic.com/steam/apps/${jogo.appId}/library_600x900.jpg`,
-    `https://cdn.akamai.steamstatic.com/steam/apps/${jogo.appId}/header.jpg`,
-    jogo.imagem || 'https://placehold.co/300x450?text=%20',
-  ]
-}
-
-function CapaJogo({ jogo, className }) {
-  const fontes = fontesDeCapa(jogo)
-  const [indice, setIndice] = useState(0)
-
-  useEffect(() => setIndice(0), [jogo.appId])
-
-  return (
-    <img
-      src={fontes[indice]}
-      alt={jogo.nome}
-      className={className}
-      onError={() => setIndice((atual) => Math.min(atual + 1, fontes.length - 1))}
-    />
-  )
-}
 
 function porcentagemConquistas(jogo) {
   if (jogo.conquistasTotais === 0) return -1
@@ -162,11 +134,7 @@ export default function BibliotecaPage() {
                       className={`linha-jogo ${jogo.appId === jogoSelecionadoAppId ? 'linha-jogo-selecionada' : ''}`}
                       onClick={() => setJogoSelecionadoAppId(jogo.appId)}
                     >
-                      <img
-                        src={jogo.imagem || 'https://placehold.co/32x32?text=%20'}
-                        alt={jogo.nome}
-                        className="icone-jogo"
-                      />
+                      <CapaJogo jogo={jogo} className="icone-jogo" />
                       <span className="nome-jogo">
                         <IconeSteam />
                         {jogo.nome}
