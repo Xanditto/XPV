@@ -15,7 +15,7 @@ evoluir para um TCC.
 | 1 | Login com conta Google e perfil básico (nickname + foto) | ✅ Na `main` |
 | 2 | Vincular conta Steam/Riot Games/Battle.net; aviso de perfil Steam privado | ✅ Na `main` — [PR #7](../../pull/7) e [PR #8](../../pull/8) |
 | 3 | Biblioteca de jogos da Steam (conquistas, privacidade) e destaques de perfil | ✅ Na `main` — [PR #11](../../pull/11) |
-| 4 | Personalização do perfil 2 (descrição, mais tipos de destaque, edição) e detalhes de jogos na Biblioteca | 🔎 Em revisão — [PR #14](../../pull/14) |
+| 4 | Personalização do perfil 2 (descrição, mais tipos de destaque, edição) e detalhes de jogos na Biblioteca | ✅ Na `main` — [PR #14](../../pull/14) |
 | 5 | Avaliação de usuários e recomendação de jogos | 🔎 Em revisão — [PR #17](../../pull/17) e [PR #18](../../pull/18) |
 
 ## Estrutura
