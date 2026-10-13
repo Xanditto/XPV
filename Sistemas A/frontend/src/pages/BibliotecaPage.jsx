@@ -1,55 +1,43 @@
 import { useEffect, useMemo, useState } from 'react'
 import { buscarDetalhesLojaDoJogo, listarContas, listarJogos, sincronizarJogos } from '../lib/api'
 import { formatarHoras } from '../lib/formato'
+import { useFiltroJogos } from '../lib/useFiltroJogos'
 import LayoutApp from '../components/LayoutApp'
+import CapaJogo from '../components/CapaJogo'
 import { IconeConquista100, IconeSteam } from '../components/Icones'
-
-// A Steam guarda imagens de capa em alta resolucao no CDN, indexadas só pelo
-// appId (sem precisar de chamada de API) - bem melhores que o icone de
-// 32x32 que a lista de jogos usa. Nem todo jogo (principalmente os mais
-// antigos/obscuros) tem a capa vertical, então cai pro header e depois pro
-// icone pequeno se a imagem de maior qualidade não existir.
-function fontesDeCapa(jogo) {
-  return [
-    `https://cdn.akamai.steamstatic.com/steam/apps/${jogo.appId}/library_600x900.jpg`,
-    `https://cdn.akamai.steamstatic.com/steam/apps/${jogo.appId}/header.jpg`,
-    jogo.imagem || 'https://placehold.co/300x450?text=%20',
-  ]
-}
-
-function CapaJogo({ jogo, className }) {
-  const fontes = fontesDeCapa(jogo)
-  const [indice, setIndice] = useState(0)
-
-  useEffect(() => setIndice(0), [jogo.appId])
-
-  return (
-    <img
-      src={fontes[indice]}
-      alt={jogo.nome}
-      className={className}
-      onError={() => setIndice((atual) => Math.min(atual + 1, fontes.length - 1))}
-    />
-  )
-}
 
 function porcentagemConquistas(jogo) {
   if (jogo.conquistasTotais === 0) return -1
   return jogo.conquistasObtidas / jogo.conquistasTotais
 }
 
+function dataOuMinimo(dataIso) {
+  return dataIso ? new Date(dataIso).getTime() : -Infinity
+}
+
+// Toda comparação aqui é "crescente" (a menor/mais antigo primeiro) - a
+// direção escolhida pela pessoa (crescente/decrescente) inverte o resultado
+// por fora, então não precisa duplicar a lógica de ordenação pros dois lados.
 const ORDENACOES = {
   horas: {
     rotulo: 'Horas jogadas',
-    comparar: (a, b) => b.horasJogadas - a.horasJogadas,
+    comparar: (a, b) => a.horasJogadas - b.horasJogadas,
+    direcaoPadrao: 'desc',
   },
   conquistas: {
     rotulo: 'Porcentagem de conquistas',
-    comparar: (a, b) => porcentagemConquistas(b) - porcentagemConquistas(a),
+    comparar: (a, b) => porcentagemConquistas(a) - porcentagemConquistas(b),
+    direcaoPadrao: 'desc',
+  },
+  ultimoAcesso: {
+    rotulo: 'Última vez jogado',
+    comparar: (a, b) => dataOuMinimo(a.ultimoAcesso) - dataOuMinimo(b.ultimoAcesso),
+    direcaoPadrao: 'desc',
   },
   alfabetica: {
     rotulo: 'Ordem alfabética',
     comparar: (a, b) => a.nome.localeCompare(b.nome, 'pt-BR'),
+    direcaoPadrao: 'asc',
   },
 }
 
@@ -76,6 +64,7 @@ export default function BibliotecaPage() {
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState('')
   const [ordenacao, setOrdenacao] = useState('horas')
+  const [direcao, setDirecao] = useState(ORDENACOES.horas.direcaoPadrao)
   const [jogoSelecionadoAppId, setJogoSelecionadoAppId] = useState(null)
 
   useEffect(() => {
@@ -104,10 +93,17 @@ export default function BibliotecaPage() {
       .finally(() => setCarregando(false))
   }, [])
 
-  const jogosOrdenados = useMemo(
-    () => [...jogos].sort(ORDENACOES[ordenacao].comparar),
-    [jogos, ordenacao],
-  )
+  const [filtroJogo, setFiltroJogo, jogosFiltrados] = useFiltroJogos(jogos)
+
+  const jogosOrdenados = useMemo(() => {
+    const ordenados = [...jogosFiltrados].sort(ORDENACOES[ordenacao].comparar)
+    return direcao === 'asc' ? ordenados : ordenados.reverse()
+  }, [jogosFiltrados, ordenacao, direcao])
+
+  function handleTrocarOrdenacao(chave) {
+    setOrdenacao(chave)
+    setDirecao(ORDENACOES[chave].direcaoPadrao)
+  }
 
   const jogoSelecionado = jogos.find((jogo) => jogo.appId === jogoSelecionadoAppId) || null
 
@@ -116,16 +112,34 @@ export default function BibliotecaPage() {
       <div className="cabecalho-biblioteca">
         <h1 className="titulo-pagina">Biblioteca de Jogos</h1>
         {jogos.length > 0 && (
-          <label className="campo-ordenacao">
-            <span>Ordenar por</span>
-            <select value={ordenacao} onChange={(e) => setOrdenacao(e.target.value)}>
-              {Object.entries(ORDENACOES).map(([chave, { rotulo }]) => (
-                <option key={chave} value={chave}>
-                  {rotulo}
-                </option>
-              ))}
-            </select>
-          </label>
+          <div className="controles-biblioteca">
+            <input
+              type="text"
+              className="campo-busca-biblioteca"
+              value={filtroJogo}
+              onChange={(e) => setFiltroJogo(e.target.value)}
+              placeholder="Buscar jogo pelo nome..."
+            />
+            <label className="campo-ordenacao">
+              <span>Ordenar por</span>
+              <select value={ordenacao} onChange={(e) => handleTrocarOrdenacao(e.target.value)}>
+                {Object.entries(ORDENACOES).map(([chave, { rotulo }]) => (
+                  <option key={chave} value={chave}>
+                    {rotulo}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button
+              type="button"
+              className="botao-direcao-ordenacao"
+              onClick={() => setDirecao((atual) => (atual === 'asc' ? 'desc' : 'asc'))}
+              title={direcao === 'asc' ? 'Ordem crescente' : 'Ordem decrescente'}
+              aria-label={direcao === 'asc' ? 'Ordem crescente' : 'Ordem decrescente'}
+            >
+              {direcao === 'asc' ? '↑' : '↓'}
+            </button>
+          </div>
         )}
       </div>
 
@@ -162,11 +176,7 @@ export default function BibliotecaPage() {
                       className={`linha-jogo ${jogo.appId === jogoSelecionadoAppId ? 'linha-jogo-selecionada' : ''}`}
                       onClick={() => setJogoSelecionadoAppId(jogo.appId)}
                     >
-                      <img
-                        src={jogo.imagem || 'https://placehold.co/32x32?text=%20'}
-                        alt={jogo.nome}
-                        className="icone-jogo"
-                      />
+                      <CapaJogo jogo={jogo} className="icone-jogo" />
                       <span className="nome-jogo">
                         <IconeSteam />
                         {jogo.nome}

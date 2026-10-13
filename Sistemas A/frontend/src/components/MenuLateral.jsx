@@ -4,6 +4,7 @@ import { logout } from '../lib/api'
 const ITENS = [
   { rota: '/meu-perfil', rotulo: 'Meu perfil' },
   { rota: '/biblioteca', rotulo: 'Biblioteca' },
+  { rota: '/avaliacoes', rotulo: 'Avaliações' },
   { rota: '/contas', rotulo: 'Contas vinculadas' },
   { rota: '/perfil', rotulo: 'Editar perfil' },
 ]
