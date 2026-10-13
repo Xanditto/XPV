@@ -16,7 +16,7 @@ evoluir para um TCC.
 | 2 | Vincular conta Steam/Riot Games/Battle.net; aviso de perfil Steam privado | ✅ Na `main` — [PR #7](../../pull/7) e [PR #8](../../pull/8) |
 | 3 | Biblioteca de jogos da Steam (conquistas, privacidade) e destaques de perfil | ✅ Na `main` — [PR #11](../../pull/11) |
 | 4 | Personalização do perfil 2 (descrição, mais tipos de destaque, edição) e detalhes de jogos na Biblioteca | 🔎 Em revisão — [PR #14](../../pull/14) |
-| 5 | Avaliação de usuários e recomendação de jogos | 📝 Planejamento — [Issue #15](../../issues/15) e [Issue #16](../../issues/16) |
+| 5 | Avaliação de usuários e recomendação de jogos | 🔎 Em revisão — [PR #17](../../pull/17) e [PR #18](../../pull/18) |
 
 ## Estrutura
 
@@ -92,15 +92,23 @@ reais às APIs externas.
 
 ---
 
-## Testando a Semana 4 (ainda em Pull Request)
+## Testando a Semana 5 (ainda em Pull Request)
 
-Essa parte ainda não está na `main` — está aguardando aprovação em reunião
-em [PR #14](../../pull/14). Para rodar essa versão localmente, depois do
-Passo 1 acima:
+Essa parte ainda não está na `main` — está aguardando aprovação em reunião,
+dividida em duas branches:
+
+- [PR #17 — Avaliação de usuários](../../pull/17): aba "Avaliações", nota em
+  estrelas (0,5 a 5) e resenha por jogo já jogado.
+- [PR #18 — Recomendação de jogos](../../pull/18): aba "Recomendação de
+  jogos", com "Dê uma chance" (jogos da biblioteca nunca jogados) e
+  "Recomendações" (20 jogos novos, escolhidos por gênero via SteamSpy).
+
+Para rodar uma dessas versões localmente, depois do Passo 1 acima:
 
 ```powershell
-git checkout feature/perfil-estilo-steam
+git checkout feature/avaliacoes-usuario
+# ou: git checkout feature/recomendacao-jogos
 ```
 
-Essa branch já contém tudo das semanas anteriores. Repita os Passos 2 e 3
+Cada branch já contém tudo das semanas anteriores. Repita os Passos 2 e 3
 normalmente.
