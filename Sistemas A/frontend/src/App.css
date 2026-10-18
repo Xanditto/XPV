@@ -60,77 +60,53 @@
   flex-direction: column;
 }
 
-.menu-dropdown {
-  position: relative;
-  border-bottom: 1px solid #2a2e37;
-  padding: 10px 24px;
-}
-
-.menu-dropdown-botao {
+.corpo-app {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  background: #1a1d24;
-  border: 1px solid #2a2e37;
-  border-radius: 8px;
-  padding: 8px 14px;
-  color: #f2f2f2;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
+  flex: 1;
+  min-height: 0;
 }
 
-.menu-dropdown-botao:hover {
-  border-color: #7dd3fc;
-}
-
-.menu-dropdown-seta {
-  color: #9aa0ab;
-  font-size: 11px;
-  transition: transform 0.15s ease;
-}
-
-.menu-dropdown-seta.aberta {
-  transform: rotate(180deg);
-}
-
-.menu-dropdown-lista {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 24px;
-  z-index: 50;
+.menu-lateral {
+  width: 220px;
+  flex-shrink: 0;
+  border-right: 1px solid #2a2e37;
+  padding: 24px 12px;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  background: #1a1d24;
-  border: 1px solid #2a2e37;
-  border-radius: 10px;
-  padding: 6px;
-  min-width: 220px;
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+  gap: 4px;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: width 0.2s ease, padding 0.2s ease, opacity 0.15s ease;
 }
 
-.menu-dropdown-item {
+.menu-lateral-fechado {
+  width: 0;
+  padding: 24px 0;
+  opacity: 0;
+  border-right-color: transparent;
+}
+
+.menu-lateral-item {
   display: flex;
   align-items: center;
   text-align: left;
   width: 100%;
   background: transparent;
   border: none;
-  border-radius: 8px;
-  padding: 10px 14px;
+  border-radius: 999px;
+  padding: 10px 16px;
   color: #9aa0ab;
   font-size: 14px;
   cursor: pointer;
 }
 
-.menu-dropdown-item:hover {
-  background: #0f1115;
+.menu-lateral-item:hover {
+  background: #1a1d24;
   color: #f2f2f2;
 }
 
-.menu-dropdown-item.ativo {
-  background: #0f1115;
+.menu-lateral-item.ativo {
+  background: #16222c;
   color: #7dd3fc;
   font-weight: 600;
 }
@@ -166,8 +142,29 @@
 
 .marca-app {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: 12px;
   text-align: left;
+}
+
+.marca-textos {
+  display: flex;
+  flex-direction: column;
+}
+
+.botao-hamburguer {
+  background: transparent;
+  border: none;
+  color: #f2f2f2;
+  font-size: 20px;
+  line-height: 1;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.botao-hamburguer:hover {
+  background: #1a1d24;
 }
 
 .marca-titulo {
