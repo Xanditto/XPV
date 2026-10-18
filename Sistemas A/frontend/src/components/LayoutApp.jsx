@@ -5,10 +5,8 @@ export default function LayoutApp({ children }) {
   return (
     <div className="layout-app">
       <CabecalhoUsuario />
-      <div className="corpo-app">
-        <MenuLateral />
-        <main className="conteudo-principal">{children}</main>
-      </div>
+      <MenuLateral />
+      <main className="conteudo-principal">{children}</main>
     </div>
   )
 }

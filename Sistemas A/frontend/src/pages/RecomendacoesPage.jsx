@@ -84,6 +84,18 @@ export default function RecomendacoesPage() {
                   </div>
                   <span className="nome-recomendacao">{jogo.nome}</span>
                   <span className="preco-recomendacao">{jogo.gratuito ? 'Grátis' : jogo.precoFormatado}</span>
+
+                  <div className="dica-recomendacao">
+                    <div className="dica-recomendacao-cabecalho">
+                      <strong>{jogo.nome}</strong>
+                      {jogo.notaMetacritic != null && (
+                        <span className={`detalhes-jogo-metacritic ${corMetacritic(jogo.notaMetacritic)}`}>
+                          {jogo.notaMetacritic}
+                        </span>
+                      )}
+                    </div>
+                    {jogo.sinopse && <p className="dica-recomendacao-sinopse">{jogo.sinopse}</p>}
+                  </div>
                 </a>
               ))}
             </div>

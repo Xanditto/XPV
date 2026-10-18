@@ -50,6 +50,7 @@ public class RecomendacaoService {
     private static final int MINIMO_DE_AVALIACOES = 50;
     private static final double NOTA_MINIMA_POSITIVAS = 0.7;
     private static final String GENERO_PADRAO = "action";
+    private static final int TAMANHO_MAXIMO_SINOPSE = 160;
 
     private final ContaPlataformaRepository contaPlataformaRepository;
     private final JogoRepository jogoRepository;
@@ -212,11 +213,22 @@ public class RecomendacaoService {
         }
         adicionados.add(candidato.appId());
         return new JogoRecomendadoResponse(candidato.appId(), candidato.nome(), detalhes.notaMetacritic(),
-                detalhes.gratuito(), detalhes.precoFormatado());
+                detalhes.gratuito(), detalhes.precoFormatado(), truncarSinopse(detalhes.descricao()));
     }
 
     private boolean temBoasAvaliacoes(SteamSpyService.JogoSteamSpy jogo) {
         long total = jogo.positivas() + jogo.negativas();
         return total >= MINIMO_DE_AVALIACOES && (double) jogo.positivas() / total >= NOTA_MINIMA_POSITIVAS;
+    }
+
+    /** Corta a sinopse num limite de caracteres, pra não ficar enorme na dica (hint) de passar o mouse. */
+    private String truncarSinopse(String descricao) {
+        if (descricao == null || descricao.isBlank()) {
+            return null;
+        }
+        if (descricao.length() <= TAMANHO_MAXIMO_SINOPSE) {
+            return descricao;
+        }
+        return descricao.substring(0, TAMANHO_MAXIMO_SINOPSE).stripTrailing() + "...";
     }
 }
