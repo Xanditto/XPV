@@ -1382,6 +1382,7 @@ a.cartao-recomendacao:hover .capa-recomendacao {
 
   .detalhes-jogo {
     flex-direction: column;
+    align-items: stretch;
   }
 
   .detalhes-jogo-capa {
@@ -1390,8 +1391,26 @@ a.cartao-recomendacao:hover .capa-recomendacao {
     align-self: center;
   }
 
+  .detalhes-jogo-info {
+    min-width: 0;
+  }
+
   .detalhes-jogo-cabecalho {
     flex-direction: column;
+    align-items: stretch;
+  }
+
+  .detalhes-jogo-nome {
+    min-width: 0;
+    flex-wrap: wrap;
+  }
+
+  .detalhes-jogo-estatisticas,
+  .detalhes-jogo-meta,
+  .detalhes-jogo-tags,
+  .detalhes-jogo-horas-sistema,
+  .detalhes-jogo-capturas {
+    min-width: 0;
   }
 
   .detalhes-jogo-estatisticas {
@@ -1426,11 +1445,17 @@ a.cartao-recomendacao:hover .capa-recomendacao {
 
   .perfil-hero {
     flex-direction: column;
+    align-items: stretch;
     text-align: center;
+  }
+
+  .perfil-avatar-grande {
+    align-self: center;
   }
 
   .perfil-info {
     align-items: center;
+    min-width: 0;
   }
 
   .detalhes-jogo-wrapper {
