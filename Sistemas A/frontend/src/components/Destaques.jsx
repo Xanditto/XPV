@@ -1,4 +1,5 @@
 import { formatarHoras } from '../lib/formato'
+import CapaJogo from './CapaJogo'
 import { IconeConquista100, IconeSteam } from './Icones'
 
 export const MINIMO_PERFECCIONISTA = 2
@@ -123,7 +124,7 @@ function ConteudoDestaque({ destaque }) {
         {(destaque.jogos ?? []).map((jogo, i) => (
           <li key={jogo.appId} className="linha-destaque-jogo">
             <span className="posicao-ranking">#{i + 1}</span>
-            <img src={jogo.imagem || 'https://placehold.co/32x32?text=%20'} alt={jogo.nome} className="icone-jogo" />
+            <CapaJogo jogo={jogo} className="icone-jogo" />
             <span className="nome-jogo-destaque">{jogo.nome}</span>
             <span className="horas-jogo">{formatarHoras(jogo.horasJogadas)}</span>
           </li>
@@ -139,7 +140,7 @@ function ConteudoDestaque({ destaque }) {
         const completo = jogo.conquistasTotais > 0 && jogo.conquistasObtidas === jogo.conquistasTotais
         return (
           <div key={jogo.appId} className="linha-destaque-jogo">
-            <img src={jogo.imagem || 'https://placehold.co/32x32?text=%20'} alt={jogo.nome} className="icone-jogo" />
+            <CapaJogo jogo={jogo} className="icone-jogo" />
             <span className="nome-jogo-destaque">{jogo.nome}</span>
             {jogo.conquistasTotais > 0 && (
               <span className={`conquistas-jogo ${completo ? 'conquistas-completo' : 'conquistas-incompleto'}`}>

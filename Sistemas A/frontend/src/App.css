@@ -636,6 +636,40 @@
   white-space: nowrap;
 }
 
+.controles-biblioteca {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.campo-busca-biblioteca {
+  background: #0f1115;
+  border: 1px solid #2a2e37;
+  border-radius: 8px;
+  padding: 6px 10px;
+  color: #f2f2f2;
+  font-size: 13px;
+  width: 200px;
+}
+
+.botao-direcao-ordenacao {
+  background: #0f1115;
+  border: 1px solid #2a2e37;
+  border-radius: 8px;
+  color: #9aa0ab;
+  width: 30px;
+  height: 30px;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.botao-direcao-ordenacao:hover {
+  border-color: #7dd3fc;
+  color: #7dd3fc;
+}
+
 .perfil-hero {
   display: flex;
   align-items: center;
@@ -962,12 +996,38 @@
   border-color: #7dd3fc;
 }
 
+.modal-item-jogo-selecionado {
+  border-color: #7dd3fc;
+  background: #16222c;
+}
+
+.modal-item-jogo-travado {
+  cursor: default;
+  width: 100%;
+}
+
 .modal-icone-jogo {
   width: 40px;
   height: 40px;
   border-radius: 6px;
   object-fit: cover;
   flex-shrink: 0;
+}
+
+.lista-busca-jogos {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 220px;
+  overflow-y: auto;
+  margin-top: 8px;
+}
+
+.horas-jogo-avaliacao {
+  margin-left: 6px;
+  font-size: 12px;
+  font-weight: 400;
+  color: #9aa0ab;
 }
 
 .modal-lista-conquistas {
@@ -1007,4 +1067,114 @@
   font-size: 12px;
   color: #9aa0ab;
   font-weight: 400;
+}
+
+.lista-avaliacoes {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 640px;
+}
+
+.cartao-avaliacao {
+  display: flex;
+  gap: 14px;
+  background: #1a1d24;
+  border: 1px solid #2a2e37;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.icone-jogo-avaliacao {
+  width: 56px;
+  height: 56px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.conteudo-avaliacao {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.cabecalho-avaliacao {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: #f2f2f2;
+  font-size: 14px;
+}
+
+.cabecalho-avaliacao strong {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.resenha-avaliacao {
+  margin: 0;
+  color: #d1d5db;
+  font-size: 13px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.seletor-estrelas {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.estrela-slot {
+  position: relative;
+  display: inline-block;
+  font-size: 24px;
+  line-height: 1;
+  width: 24px;
+}
+
+.estrela-fundo {
+  color: #2a2e37;
+}
+
+.estrela-preenchida {
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  color: #d4af37;
+}
+
+.estrela-botoes {
+  position: absolute;
+  inset: 0;
+  display: flex;
+}
+
+.estrela-botao {
+  flex: 1;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.seletor-estrelas-leitura .estrela-slot {
+  font-size: 18px;
+  width: 18px;
+}
+
+.estrela-valor {
+  margin-left: 6px;
+  font-size: 13px;
+  color: #9aa0ab;
 }
