@@ -9,3 +9,10 @@ export function corMetacritic(nota) {
   if (nota >= 50) return 'detalhes-jogo-metacritic-media'
   return 'detalhes-jogo-metacritic-baixa'
 }
+
+/** "120.5 h" ou, se o jogo tiver conquistas, "120.5 h • 45/80 conquistas". */
+export function formatarProgresso(jogo) {
+  const horas = formatarHoras(jogo.horasJogadas)
+  if (!jogo.conquistasTotais) return horas
+  return `${horas} • ${jogo.conquistasObtidas}/${jogo.conquistasTotais} conquistas`
+}

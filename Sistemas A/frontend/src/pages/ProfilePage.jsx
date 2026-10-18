@@ -14,6 +14,8 @@ import {
 import { mensagemDeErroDeConexao } from '../lib/erros'
 import LayoutApp from '../components/LayoutApp'
 import Modal from '../components/Modal'
+import CapaJogo from '../components/CapaJogo'
+import { useFiltroJogos } from '../lib/useFiltroJogos'
 import {
   CardDestaque,
   LIMITE_POR_TIPO,
@@ -128,6 +130,9 @@ export default function ProfilePage() {
   }, [])
 
   const jogosPlatinados = useMemo(() => jogos.filter(jogoEstaPlatinado), [jogos])
+  const [filtroFavorito, setFiltroFavorito, jogosFavoritoFiltrados] = useFiltroJogos(jogos)
+  const [filtroPerfeccionista, setFiltroPerfeccionista, jogosPlatinadosFiltrados] = useFiltroJogos(jogosPlatinados)
+  const [filtroConquistas, setFiltroConquistas, jogosConquistasFiltrados] = useFiltroJogos(jogos)
   const temSteamComBiblioteca = conta && conta.bibliotecaPublica === true
 
   const contagemPorTipo = useMemo(() => {
@@ -188,6 +193,9 @@ export default function ProfilePage() {
     setJogoConquistaAppId('')
     setConquistasDoJogo([])
     setConquistasEscolhidas([])
+    setFiltroFavorito('')
+    setFiltroPerfeccionista('')
+    setFiltroConquistas('')
   }
 
   function handleAbrirFormulario() {
@@ -418,17 +426,32 @@ export default function ProfilePage() {
               </label>
 
               {tipoNovo === 'JOGO_FAVORITO' && (
-                <label className="campo">
+                <div className="campo">
                   <span>Jogo</span>
-                  <select value={jogoFavoritoAppId} onChange={(e) => setJogoFavoritoAppId(e.target.value)}>
-                    <option value="">Escolha um jogo</option>
-                    {jogos.map((jogo) => (
-                      <option key={jogo.appId} value={jogo.appId}>
-                        {jogo.nome}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                  <input
+                    type="text"
+                    value={filtroFavorito}
+                    onChange={(e) => setFiltroFavorito(e.target.value)}
+                    placeholder="Buscar jogo pelo nome..."
+                  />
+                  <div className="lista-busca-jogos">
+                    {jogosFavoritoFiltrados.length === 0 ? (
+                      <p className="mensagem">Nenhum jogo encontrado.</p>
+                    ) : (
+                      jogosFavoritoFiltrados.map((jogo) => (
+                        <button
+                          key={jogo.appId}
+                          type="button"
+                          className={`modal-item-jogo ${String(jogo.appId) === jogoFavoritoAppId ? 'modal-item-jogo-selecionado' : ''}`}
+                          onClick={() => setJogoFavoritoAppId(String(jogo.appId))}
+                        >
+                          <CapaJogo jogo={jogo} className="modal-icone-jogo" />
+                          <span>{jogo.nome}</span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </div>
               )}
 
               {tipoNovo === 'PERFECCIONISTA' && (
@@ -440,18 +463,31 @@ export default function ProfilePage() {
                   {jogosPlatinados.length === 0 ? (
                     <p className="mensagem">Você ainda não tem jogos 100% platinados.</p>
                   ) : (
-                    <div className="lista-selecao-jogos">
-                      {jogosPlatinados.map((jogo) => (
-                        <label key={jogo.appId} className="opcao-jogo">
-                          <input
-                            type="checkbox"
-                            checked={perfeccionistaAppIds.includes(String(jogo.appId))}
-                            onChange={() => toggleJogoPerfeccionista(String(jogo.appId))}
-                          />
-                          {jogo.nome}
-                        </label>
-                      ))}
-                    </div>
+                    <>
+                      <input
+                        type="text"
+                        value={filtroPerfeccionista}
+                        onChange={(e) => setFiltroPerfeccionista(e.target.value)}
+                        placeholder="Buscar jogo pelo nome..."
+                      />
+                      <div className="lista-selecao-jogos">
+                        {jogosPlatinadosFiltrados.length === 0 ? (
+                          <p className="mensagem">Nenhum jogo encontrado.</p>
+                        ) : (
+                          jogosPlatinadosFiltrados.map((jogo) => (
+                            <label key={jogo.appId} className="opcao-jogo">
+                              <input
+                                type="checkbox"
+                                checked={perfeccionistaAppIds.includes(String(jogo.appId))}
+                                onChange={() => toggleJogoPerfeccionista(String(jogo.appId))}
+                              />
+                              <CapaJogo jogo={jogo} className="icone-jogo" />
+                              {jogo.nome}
+                            </label>
+                          ))
+                        )}
+                      </div>
+                    </>
                   )}
                 </div>
               )}
@@ -542,19 +578,31 @@ export default function ProfilePage() {
           onFechar={() => setModalConquistasAberto(false)}
         >
           {!jogoConquistaAppId ? (
-            <div className="modal-lista-jogos">
-              {jogos.map((jogo) => (
-                <button
-                  key={jogo.appId}
-                  type="button"
-                  className="modal-item-jogo"
-                  onClick={() => handleEscolherJogoConquista(String(jogo.appId))}
-                >
-                  <img src={jogo.imagem || 'https://placehold.co/48x48?text=%20'} alt={jogo.nome} className="modal-icone-jogo" />
-                  <span>{jogo.nome}</span>
-                </button>
-              ))}
-            </div>
+            <>
+              <input
+                type="text"
+                value={filtroConquistas}
+                onChange={(e) => setFiltroConquistas(e.target.value)}
+                placeholder="Buscar jogo pelo nome..."
+              />
+              <div className="modal-lista-jogos">
+                {jogosConquistasFiltrados.length === 0 ? (
+                  <p className="mensagem">Nenhum jogo encontrado.</p>
+                ) : (
+                  jogosConquistasFiltrados.map((jogo) => (
+                    <button
+                      key={jogo.appId}
+                      type="button"
+                      className="modal-item-jogo"
+                      onClick={() => handleEscolherJogoConquista(String(jogo.appId))}
+                    >
+                      <CapaJogo jogo={jogo} className="modal-icone-jogo" />
+                      <span>{jogo.nome}</span>
+                    </button>
+                  ))
+                )}
+              </div>
+            </>
           ) : (
             <>
               <button type="button" className="botao-secundario" onClick={() => handleEscolherJogoConquista('')}>
