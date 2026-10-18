@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -266,21 +267,40 @@ public class SteamService {
 
     public record DetalhesLoja(String descricao, List<Genero> generos, List<String> desenvolvedoras,
                                 List<String> publicadoras, String dataLancamento, Integer notaMetacritic,
-                                List<Categoria> categorias, List<Captura> capturas) {
+                                List<Categoria> categorias, List<Captura> capturas,
+                                boolean gratuito, String precoFormatado, boolean disponivelParaCompra) {
     }
+
+    private final Map<Long, DetalhesLoja> cacheDetalhesLoja = new ConcurrentHashMap<>();
+    private final Map<Long, Instant> validadeCacheDetalhesLoja = new ConcurrentHashMap<>();
+    private static final Duration TTL_DETALHES_LOJA = Duration.ofHours(6);
+    private final Object travaDetalhesLoja = new Object();
+    private Instant ultimaChamadaDetalhesLoja = Instant.EPOCH;
+    private static final Duration INTERVALO_MINIMO_DETALHES_LOJA = Duration.ofMillis(600);
 
     /**
      * Informações da ficha da loja da Steam (descrição, gêneros,
      * desenvolvedora/publicadora, data de lançamento, nota do Metacritic,
-     * categorias e capturas de tela). É um endpoint público da própria loja
-     * (não da Web API), sem necessidade de chave - mas sujeito a um rate
-     * limit mais agressivo, então só é chamado sob demanda (um jogo por
-     * vez, quando o usuário abre o painel de detalhes), nunca durante a
-     * sincronização em massa da biblioteca.
+     * categorias, capturas de tela, preço e se ainda está disponível pra
+     * compra). É um endpoint público da própria loja (não da Web API), sem
+     * necessidade de chave - mas sujeito a um rate limit mais agressivo, por
+     * isso o resultado fica em cache por algumas horas e as chamadas
+     * respeitam um intervalo mínimo entre si (ver {@link #respeitarRateLimitDetalhesLoja()}).
+     * "disponivelParaCompra" é falso quando o jogo não é gratuito e não tem
+     * "price_overview" na resposta - sinal de que foi removido da loja (ex.:
+     * Rocket League, que segue jogável por quem já tinha, mas não pode mais
+     * ser comprado), útil pra não recomendar jogos que a pessoa não consegue
+     * adquirir.
      */
     public DetalhesLoja buscarDetalhesLoja(long appId) {
+        DetalhesLoja emCache = cacheDetalhesLoja.get(appId);
+        Instant validade = validadeCacheDetalhesLoja.get(appId);
+        if (emCache != null && validade != null && validade.isAfter(Instant.now())) {
+            return emCache;
+        }
         try {
-            String url = "https://store.steampowered.com/api/appdetails?appids=" + appId + "&l=portuguese";
+            respeitarRateLimitDetalhesLoja();
+            String url = "https://store.steampowered.com/api/appdetails?appids=" + appId + "&l=portuguese&cc=br";
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
                     .timeout(Duration.ofSeconds(8))
@@ -320,7 +340,12 @@ public class SteamService {
 
             Integer notaMetacritic = dados.has("metacritic") ? dados.path("metacritic").path("score").asInt() : null;
 
-            return new DetalhesLoja(
+            boolean gratuito = dados.path("is_free").asBoolean(false);
+            String precoFormatado = dados.has("price_overview")
+                    ? dados.path("price_overview").path("final_formatted").asText(null) : null;
+            boolean disponivelParaCompra = gratuito || precoFormatado != null;
+
+            DetalhesLoja resultado = new DetalhesLoja(
                     dados.path("short_description").asText(""),
                     generos,
                     desenvolvedoras,
@@ -328,10 +353,31 @@ public class SteamService {
                     dados.path("release_date").path("date").asText(""),
                     notaMetacritic,
                     categorias,
-                    capturas);
+                    capturas,
+                    gratuito,
+                    precoFormatado,
+                    disponivelParaCompra);
+
+            cacheDetalhesLoja.put(appId, resultado);
+            validadeCacheDetalhesLoja.put(appId, Instant.now().plus(TTL_DETALHES_LOJA));
+            return resultado;
         } catch (Exception e) {
             log.warn("Falha ao consultar detalhes da loja do appid {}: {}", appId, e.getMessage());
             return null;
+        }
+    }
+
+    private void respeitarRateLimitDetalhesLoja() {
+        synchronized (travaDetalhesLoja) {
+            Duration desdeAUltima = Duration.between(ultimaChamadaDetalhesLoja, Instant.now());
+            if (desdeAUltima.compareTo(INTERVALO_MINIMO_DETALHES_LOJA) < 0) {
+                try {
+                    Thread.sleep(INTERVALO_MINIMO_DETALHES_LOJA.minus(desdeAUltima).toMillis());
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+            ultimaChamadaDetalhesLoja = Instant.now();
         }
     }
 

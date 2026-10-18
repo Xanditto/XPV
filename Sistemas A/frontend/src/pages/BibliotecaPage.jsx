@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { buscarDetalhesLojaDoJogo, listarContas, listarJogos, sincronizarJogos } from '../lib/api'
-import { formatarHoras } from '../lib/formato'
+import { corMetacritic, formatarHoras } from '../lib/formato'
+import { mensagemDeErroDeConexao } from '../lib/erros'
 import { useFiltroJogos } from '../lib/useFiltroJogos'
 import LayoutApp from '../components/LayoutApp'
 import CapaJogo from '../components/CapaJogo'
@@ -45,12 +46,6 @@ function formatarData(dataIso) {
   return new Date(dataIso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
-function corMetacritic(nota) {
-  if (nota >= 75) return 'detalhes-jogo-metacritic-alta'
-  if (nota >= 50) return 'detalhes-jogo-metacritic-media'
-  return 'detalhes-jogo-metacritic-baixa'
-}
-
 const ROTULOS_SISTEMA = {
   horasWindows: 'Windows',
   horasMac: 'Mac',
@@ -89,7 +84,7 @@ export default function BibliotecaPage() {
           setJogoSelecionadoAppId(jogosCarregados[0].appId)
         }
       })
-      .catch((err) => setErro(err.message || 'Não foi possível carregar a biblioteca.'))
+      .catch((err) => setErro(mensagemDeErroDeConexao(err, 'Não foi possível carregar a biblioteca.')))
       .finally(() => setCarregando(false))
   }, [])
 
@@ -222,7 +217,7 @@ function DetalhesJogo({ jogo, contaId }) {
     setCarregandoLoja(true)
     buscarDetalhesLojaDoJogo(contaId, jogo.appId)
       .then(setDetalhesLoja)
-      .catch((err) => setErroLoja(err.message || 'Não foi possível carregar os detalhes da loja.'))
+      .catch((err) => setErroLoja(mensagemDeErroDeConexao(err, 'Não foi possível carregar os detalhes da loja.')))
       .finally(() => setCarregandoLoja(false))
   }, [contaId, jogo.appId])
 

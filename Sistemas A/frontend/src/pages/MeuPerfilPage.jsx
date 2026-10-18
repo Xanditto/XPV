@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { buscarPerfil, listarDestaques } from '../lib/api'
+import { mensagemDeErroDeConexao } from '../lib/erros'
 import LayoutApp from '../components/LayoutApp'
 import { CardDestaque } from '../components/Destaques'
 
@@ -15,7 +16,7 @@ export default function MeuPerfilPage() {
         setUsuario(dadosUsuario)
         setDestaques(destaquesAtuais)
       })
-      .catch((err) => setErro(err.message || 'Não foi possível carregar o perfil.'))
+      .catch((err) => setErro(mensagemDeErroDeConexao(err, 'Não foi possível carregar o perfil.')))
       .finally(() => setCarregando(false))
   }, [])
 
