@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: xpv-backend
+    runtime: docker
+    rootDir: Sistemas A/backend
+    dockerfilePath: ./Dockerfile
+    plan: free
+    envVars:
+      # Depois do primeiro deploy, troque pela URL que o Render atribuiu a
+      # este serviço (ex.: https://xpv-backend.onrender.com) - usada pra
+      # montar os links de retorno do login Steam/Battle.net.
+      - key: APP_BASE_URL
+        sync: false
+      - key: FRONTEND_URL
+        value: https://xanditto.github.io/XPV
+      - key: CORS_ALLOWED_ORIGIN
+        value: http://localhost:5173,https://xanditto.github.io
+      # Opcionais - sem elas o resto funciona normal, só os botões daquela
+      # plataforma dão erro ao clicar. Preencha no painel do Render se quiser.
+      - key: STEAM_API_KEY
+        sync: false
+      - key: RIOT_API_KEY
+        sync: false
+      - key: BATTLENET_CLIENT_ID
+        sync: false
+      - key: BATTLENET_CLIENT_SECRET
+        sync: false
