@@ -10,9 +10,14 @@ const ITENS = [
   { rota: '/perfil', rotulo: 'Editar perfil' },
 ]
 
-export default function MenuLateral() {
+export default function MenuLateral({ aberto, onNavegar }) {
   const navigate = useNavigate()
   const location = useLocation()
+
+  function irPara(rota) {
+    navigate(rota)
+    onNavegar?.()
+  }
 
   function handleSair() {
     logout()
@@ -20,13 +25,13 @@ export default function MenuLateral() {
   }
 
   return (
-    <nav className="menu-lateral">
+    <nav className={`menu-lateral ${aberto ? '' : 'menu-lateral-fechado'}`}>
       {ITENS.map((item) => (
         <button
           key={item.rota}
           type="button"
           className={`menu-lateral-item ${location.pathname === item.rota ? 'ativo' : ''}`}
-          onClick={() => navigate(item.rota)}
+          onClick={() => irPara(item.rota)}
         >
           {item.rotulo}
         </button>

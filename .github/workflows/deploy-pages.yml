@@ -1,0 +1,60 @@
+name: Deploy frontend no GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "Sistemas A/frontend/**"
+      - ".github/workflows/deploy-pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: "Sistemas A/frontend/package-lock.json"
+
+      - name: Instala dependencias
+        working-directory: Sistemas A/frontend
+        run: npm ci
+
+      - name: Build
+        working-directory: Sistemas A/frontend
+        env:
+          # VITE_API_URL muda toda vez que o tunel do backend e recriado -
+          # configure/atualize em Settings > Secrets and variables > Actions
+          # > Variables (sem precisar editar codigo nem abrir PR).
+          VITE_API_URL: ${{ vars.VITE_API_URL || 'http://localhost:8080' }}
+          VITE_GOOGLE_CLIENT_ID: ${{ vars.VITE_GOOGLE_CLIENT_ID || '50898832420-up30ovtc4kodqfn9a0v1q1lng2ra7bfs.apps.googleusercontent.com' }}
+        run: npm run build
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: "Sistemas A/frontend/dist"
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
