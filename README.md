@@ -16,12 +16,17 @@ evoluir para um TCC.
 | 2 | Vincular conta Steam/Riot Games/Battle.net; aviso de perfil Steam privado | ✅ Na `main` — [PR #7](../../pull/7) e [PR #8](../../pull/8) |
 | 3 | Biblioteca de jogos da Steam (conquistas, privacidade) e destaques de perfil | ✅ Na `main` — [PR #11](../../pull/11) |
 | 4 | Personalização do perfil 2 (descrição, mais tipos de destaque, edição) e detalhes de jogos na Biblioteca | ✅ Na `main` — [PR #14](../../pull/14) |
-| 5 | Avaliação de usuários e recomendação de jogos | 🔎 Em revisão — [PR #17](../../pull/17) e [PR #18](../../pull/18) |
+| 5 | Avaliação de usuários e recomendação de jogos | ✅ Na `main` — [PR #17](../../pull/17) e [PR #18](../../pull/18) |
+| 6 | Menu lateral recolhível (estilo Google Classroom), dica ao passar o mouse nas recomendações, layout responsivo pra celular e deploy automático no GitHub Pages | ✅ Na `main` |
 
-### 🔗 Acesso ao vivo (temporário)
+### 🔗 Acesso ao vivo
 
-Enquanto eu estiver testando com o meu computador ligado, dá pra acessar
-direto, sem precisar rodar nada:
+**https://xanditto.github.io/XPV/** — site publicado automaticamente (GitHub
+Pages) a cada atualização da `main`. Dá pra navegar pela interface sempre,
+mas login e dados dependem do backend estar rodando no meu PC (ver abaixo).
+
+Enquanto eu estiver testando com o backend ligado, o site de cima funciona
+por completo através desse túnel:
 
 **https://cloudy-superior-bullet-appliances.trycloudflare.com**
 
@@ -103,23 +108,28 @@ reais às APIs externas.
 
 ---
 
-## Testando a Semana 5 (ainda em Pull Request)
+## Deploy no GitHub Pages
 
-Essa parte ainda não está na `main` — está aguardando aprovação em reunião,
-dividida em duas branches:
+O frontend é publicado automaticamente em
+[xanditto.github.io/XPV](https://xanditto.github.io/XPV/) a cada push na
+`main` que mexa em `Sistemas A/frontend/`, via
+[`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml).
+O backend (Java/Spring) não entra nesse deploy — GitHub Pages só serve
+arquivos estáticos — então login e dados continuam dependendo do túnel
+acima estar no ar.
 
-- [PR #17 — Avaliação de usuários](../../pull/17): aba "Avaliações", nota em
-  estrelas (0,5 a 5) e resenha por jogo já jogado.
-- [PR #18 — Recomendação de jogos](../../pull/18): aba "Recomendação de
-  jogos", com "Dê uma chance" (jogos da biblioteca nunca jogados) e
-  "Recomendações" (20 jogos novos, escolhidos por gênero via SteamSpy).
+Três coisas de configuração que só dá pra fazer pela própria conta do
+GitHub/Google (não por código):
 
-Para rodar uma dessas versões localmente, depois do Passo 1 acima:
-
-```powershell
-git checkout feature/avaliacoes-usuario
-# ou: git checkout feature/recomendacao-jogos
-```
-
-Cada branch já contém tudo das semanas anteriores. Repita os Passos 2 e 3
-normalmente.
+1. **Settings → Pages → Build and deployment → Source: "GitHub Actions"**
+   (uma vez só, pra habilitar o Pages no repositório).
+2. **Settings → Secrets and variables → Actions → Variables**, criar/editar
+   `VITE_API_URL` com a URL do túnel atual toda vez que ele for recriado
+   (senão o site publicado tenta falar com o túnel antigo, que já caiu).
+   Sem essa variável configurada, o build usa `http://localhost:8080` como
+   padrão (o site abre, mas login/dados não funcionam pra quem não estiver
+   na minha rede).
+3. **Google Cloud Console → projeto XPV → Credenciais → o Client ID OAuth →
+   "Authorized JavaScript origins"**, adicionar
+   `https://xanditto.github.io` (uma vez só) — senão o botão de login com
+   Google recusa a origem.
