@@ -22,17 +22,14 @@ evoluir para um TCC.
 ### 🔗 Acesso ao vivo
 
 **https://xanditto.github.io/XPV/** — site publicado automaticamente (GitHub
-Pages) a cada atualização da `main`. Dá pra navegar pela interface sempre,
-mas login e dados dependem do backend estar rodando no meu PC (ver abaixo).
+Pages) a cada atualização da `main`, com login e dados funcionando sem
+precisar do meu PC ligado: o backend roda 24h no [Render](https://render.com)
+(ver seção "Backend sempre no ar" abaixo).
 
-Enquanto eu estiver testando com o backend ligado, o site de cima funciona
-por completo através desse túnel:
-
-**https://cloudy-superior-bullet-appliances.trycloudflare.com**
-
-Esse link só funciona enquanto meu PC, o backend e o túnel estiverem
-rodando ao mesmo tempo — se não abrir, é porque eu já encerrei a sessão de
-testes. Pra testar de verdade, veja "Como rodar o projeto localmente" abaixo.
+Única ressalva: o plano gratuito do Render "dorme" depois de 15 min sem uso,
+então a primeira requisição depois de um tempo parado pode demorar uns
+30-60 segundos pra responder (ele está "acordando"). Depois disso funciona
+normal.
 
 ## Estrutura
 
@@ -114,22 +111,67 @@ O frontend é publicado automaticamente em
 [xanditto.github.io/XPV](https://xanditto.github.io/XPV/) a cada push na
 `main` que mexa em `Sistemas A/frontend/`, via
 [`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml).
-O backend (Java/Spring) não entra nesse deploy — GitHub Pages só serve
-arquivos estáticos — então login e dados continuam dependendo do túnel
-acima estar no ar.
+GitHub Pages só serve arquivos estáticos (sem rodar Java), então o backend
+precisa estar hospedado à parte — ver seção seguinte.
 
-Três coisas de configuração que só dá pra fazer pela própria conta do
-GitHub/Google (não por código):
+Configuração única, só dá pra fazer pela própria conta do GitHub/Google
+(não por código):
 
 1. **Settings → Pages → Build and deployment → Source: "GitHub Actions"**
-   (uma vez só, pra habilitar o Pages no repositório).
-2. **Settings → Secrets and variables → Actions → Variables**, criar/editar
-   `VITE_API_URL` com a URL do túnel atual toda vez que ele for recriado
-   (senão o site publicado tenta falar com o túnel antigo, que já caiu).
-   Sem essa variável configurada, o build usa `http://localhost:8080` como
-   padrão (o site abre, mas login/dados não funcionam pra quem não estiver
-   na minha rede).
+   — habilita o Pages no repositório.
+2. **Settings → Secrets and variables → Actions → Variables**, criar
+   `VITE_API_URL` com a URL do backend no Render (ex.:
+   `https://xpv-backend.onrender.com`) — ver próxima seção. Como o Render
+   não muda de endereço a cada reinício (diferente do túnel de antes), essa
+   variável só precisa ser configurada uma vez.
 3. **Google Cloud Console → projeto XPV → Credenciais → o Client ID OAuth →
    "Authorized JavaScript origins"**, adicionar
-   `https://xanditto.github.io` (uma vez só) — senão o botão de login com
-   Google recusa a origem.
+   `https://xanditto.github.io` — senão o botão de login com Google recusa
+   a origem.
+
+## Backend sempre no ar (Render)
+
+O backend sobe automaticamente no [Render](https://render.com) a partir do
+[`render.yaml`](render.yaml) e do
+[`Dockerfile`](Sistemas%20A/backend/Dockerfile) deste repositório (plano
+gratuito, "Web Service" via Docker).
+
+**Configuração única:**
+
+1. Criar conta grátis em [render.com](https://render.com) (dá pra entrar
+   direto com o GitHub).
+2. **New + → Blueprint** → selecionar o repositório `Xanditto/XPV` → o
+   Render lê o `render.yaml` sozinho e já propõe o serviço `xpv-backend`.
+3. Preencher as variáveis marcadas como obrigatórias (`STEAM_API_KEY` e
+   `RIOT_API_KEY` podem ficar em branco - sem elas só o botão daquela
+   plataforma dá erro) e clicar em **Apply/Deploy**.
+4. Depois do primeiro deploy, o Render mostra a URL pública atribuída
+   (algo como `https://xpv-backend-xxxx.onrender.com`). Copiar essa URL e:
+   - Colar em **Settings → Environment** do próprio serviço, na variável
+     `APP_BASE_URL` (usada nos links de retorno do login Steam/Battle.net).
+   - Colar como `VITE_API_URL` nas Variables do GitHub Actions (passo 2 da
+     seção anterior) e rodar o workflow do Pages de novo (`Actions` →
+     `Deploy frontend no GitHub Pages` → `Run workflow`), pra o site
+     publicado passar a apontar pro Render.
+
+O banco SQLite do Render é apagado a cada novo deploy/reinício do serviço
+(plano gratuito não tem disco permanente) — normal para demonstração, só
+significa que o primeiro login de novo precisa ser com o Google de novo.
+
+### Plano B pra apresentação ao vivo
+
+Por causa do "cold start" (30-60s a primeira vez que alguém acessa depois
+de um tempo parado), pra apresentação ao vivo vale a pena também deixar o
+backend rodando local com um túnel de domínio fixo, como plano B caso o
+Render esteja "dormindo" bem na hora:
+
+```powershell
+# Backend local rodando (Passo 1 de "Como rodar o projeto localmente")
+ngrok http 8080 --domain=seu-dominio-fixo.ngrok-free.app
+```
+
+(o domínio fixo é criado uma vez em
+[dashboard.ngrok.com](https://dashboard.ngrok.com) → Domains, no plano
+grátis). Se precisar usar esse plano B na hora, é só trocar a variável
+`VITE_API_URL` do GitHub Actions pra essa URL do ngrok e rodar o workflow
+de novo.
