@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { getUsuarioCache } from '../lib/api'
+import { AVATAR_PADRAO } from '../lib/formato'
 
 export default function CabecalhoUsuario({ onAlternarMenu }) {
   const navigate = useNavigate()
@@ -25,7 +26,7 @@ export default function CabecalhoUsuario({ onAlternarMenu }) {
       >
         <span className="nickname-topo">{usuario?.nickname}</span>
         <img
-          src={usuario?.avatar || 'https://placehold.co/32x32?text=XPV'}
+          src={usuario?.avatar || AVATAR_PADRAO}
           alt="Foto de perfil"
           className="avatar-pequeno"
         />

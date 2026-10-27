@@ -80,14 +80,14 @@ export async function buscarPerfil() {
   return tratarResposta(response)
 }
 
-export async function atualizarPerfil({ nickname, avatar, descricao }) {
+export async function atualizarPerfil({ nickname, avatar, descricao, removerAvatar }) {
   const response = await fetch(`${API_URL}/api/profile`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${getSessionToken()}`,
     },
-    body: JSON.stringify({ nickname, avatar, descricao }),
+    body: JSON.stringify({ nickname, avatar, descricao, removerAvatar }),
   })
   const usuario = await tratarResposta(response)
   localStorage.setItem(USER_KEY, JSON.stringify(usuario))
