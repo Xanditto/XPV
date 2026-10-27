@@ -1335,6 +1335,20 @@ a.cartao-recomendacao:hover .capa-recomendacao {
   color: #9aa0ab;
 }
 
+.seletor-estrelas-editavel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Mesma largura das 5 estrelas (5 x 24px + 4 x 4px de gap) pra barrinha ficar alinhada embaixo delas. */
+.barra-nota {
+  width: 136px;
+  margin: 0;
+  accent-color: #d4af37;
+  cursor: pointer;
+}
+
 .fundo-menu-mobile {
   display: none;
 }

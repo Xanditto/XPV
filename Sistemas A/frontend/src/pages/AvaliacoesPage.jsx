@@ -29,6 +29,8 @@ export default function AvaliacoesPage() {
   const [salvando, setSalvando] = useState(false)
   const [erroModal, setErroModal] = useState('')
 
+  const [avaliacaoParaRemover, setAvaliacaoParaRemover] = useState(null)
+
   useEffect(() => {
     listarContas()
       .then(async (contas) => {
@@ -117,6 +119,7 @@ export default function AvaliacoesPage() {
   }
 
   async function handleRemover(id) {
+    setAvaliacaoParaRemover(null)
     try {
       await removerAvaliacao(id)
       setAvaliacoes((atual) => atual.filter((a) => a.id !== id))
@@ -174,7 +177,7 @@ export default function AvaliacoesPage() {
                     <button
                       type="button"
                       className="botao-remover-destaque botao-lixeira"
-                      onClick={() => handleRemover(avaliacao.id)}
+                      onClick={() => setAvaliacaoParaRemover(avaliacao)}
                       aria-label="Remover avaliação"
                       title="Remover avaliação"
                     >
@@ -258,6 +261,23 @@ export default function AvaliacoesPage() {
               {salvando ? 'Salvando...' : 'Confirmar'}
             </button>
             <button type="button" className="botao-secundario" onClick={handleFecharModal}>
+              Cancelar
+            </button>
+          </div>
+        </Modal>
+      )}
+
+      {avaliacaoParaRemover && (
+        <Modal titulo="Apagar avaliação" onFechar={() => setAvaliacaoParaRemover(null)}>
+          <p className="mensagem">
+            Tem certeza que deseja apagar sua avaliação de <strong>{avaliacaoParaRemover.jogoNome}</strong>?
+            Essa ação não pode ser desfeita.
+          </p>
+          <div className="acoes-formulario-destaque">
+            <button type="button" className="botao-principal" onClick={() => handleRemover(avaliacaoParaRemover.id)}>
+              Apagar
+            </button>
+            <button type="button" className="botao-secundario" onClick={() => setAvaliacaoParaRemover(null)}>
               Cancelar
             </button>
           </div>
