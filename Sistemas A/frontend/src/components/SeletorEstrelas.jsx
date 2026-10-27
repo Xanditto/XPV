@@ -1,3 +1,5 @@
+import { formatarNota } from '../lib/formato'
+
 /**
  * Seletor de 0 a 5 estrelas em passos de meia estrela. Cada estrela tem uma
  * metade clicável esquerda (X,5) e direita (X inteiro) - ver CSS
@@ -34,7 +36,7 @@ export default function SeletorEstrelas({ valor, onChange, somenteLeitura }) {
           </span>
         )
       })}
-      {!somenteLeitura && <span className="estrela-valor">{valor ? `${valor.toFixed(1)} / 5` : 'Escolha uma nota'}</span>}
+      {!somenteLeitura && <span className="estrela-valor">{valor ? formatarNota(valor) : 'Escolha uma nota'}</span>}
     </div>
   )
 }

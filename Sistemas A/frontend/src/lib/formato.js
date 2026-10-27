@@ -3,6 +3,11 @@ export function formatarHoras(horas) {
   return `${horas.toFixed(1)} h`
 }
 
+/** "5 / 5" para notas inteiras e "4.5 / 5" para meias estrelas. */
+export function formatarNota(nota) {
+  return `${Number.isInteger(nota) ? nota : nota.toFixed(1)} / 5`
+}
+
 /** Classe CSS do selo de nota do Metacritic, nas mesmas cores do site oficial. */
 export function corMetacritic(nota) {
   if (nota >= 75) return 'detalhes-jogo-metacritic-alta'

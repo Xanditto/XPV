@@ -12,7 +12,7 @@ import LayoutApp from '../components/LayoutApp'
 import Modal from '../components/Modal'
 import CapaJogo from '../components/CapaJogo'
 import SeletorEstrelas from '../components/SeletorEstrelas'
-import { IconeSteam } from '../components/Icones'
+import { IconeLixeira, IconeSteam } from '../components/Icones'
 
 export default function AvaliacoesPage() {
   const [conta, setConta] = useState(null)
@@ -173,11 +173,12 @@ export default function AvaliacoesPage() {
                     </button>
                     <button
                       type="button"
-                      className="botao-remover-destaque"
+                      className="botao-remover-destaque botao-lixeira"
                       onClick={() => handleRemover(avaliacao.id)}
                       aria-label="Remover avaliação"
+                      title="Remover avaliação"
                     >
-                      ×
+                      <IconeLixeira />
                     </button>
                   </div>
                 </div>

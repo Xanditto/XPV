@@ -95,7 +95,7 @@ teste"** uma única vez em
 → **APIs e Serviços → Tela de consentimento OAuth → Usuários de teste →
 Add users** — senão o Google bloqueia o login.
 
-Fluxo: login com Google → define uma senha → cai em `/inicio`. Nas próximas
+Fluxo: login com Google → define uma senha → cai no perfil (`/meu-perfil`). Nas próximas
 vezes, entra só com e-mail/nickname + essa senha, sem precisar do Google.
 
 ### Testes automatizados do backend
