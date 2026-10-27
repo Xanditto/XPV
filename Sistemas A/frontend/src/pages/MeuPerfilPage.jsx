@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { buscarPerfil, listarDestaques } from '../lib/api'
 import { mensagemDeErroDeConexao } from '../lib/erros'
+import { AVATAR_PADRAO } from '../lib/formato'
 import LayoutApp from '../components/LayoutApp'
 import { CardDestaque } from '../components/Destaques'
 
@@ -30,7 +31,7 @@ export default function MeuPerfilPage() {
 
           <div className="perfil-hero">
             <img
-              src={usuario?.avatar || 'https://placehold.co/160x160?text=XPV'}
+              src={usuario?.avatar || AVATAR_PADRAO}
               alt="Foto de perfil"
               className="perfil-avatar-grande"
             />

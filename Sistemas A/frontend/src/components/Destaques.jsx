@@ -73,6 +73,10 @@ function ConteudoDestaque({ destaque }) {
   }
 
   if (destaque.tipo === 'TEMPO_POR_PLATAFORMA') {
+    // Destaque ainda não salvo (rascunho do Editar perfil): o servidor é quem soma as horas de todas as contas.
+    if (!destaque.temposPorPlataforma) {
+      return <p className="mensagem">As horas por plataforma aparecem depois de salvar.</p>
+    }
     return (
       <ol className="lista-destaque-jogos lista-ranking">
         {(destaque.temposPorPlataforma ?? []).map((tempo, i) => (

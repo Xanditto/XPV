@@ -1,6 +1,9 @@
+import { useNavigate } from 'react-router-dom'
 import { getUsuarioCache } from '../lib/api'
+import { AVATAR_PADRAO } from '../lib/formato'
 
 export default function CabecalhoUsuario({ onAlternarMenu }) {
+  const navigate = useNavigate()
   const usuario = getUsuarioCache()
 
   return (
@@ -15,14 +18,19 @@ export default function CabecalhoUsuario({ onAlternarMenu }) {
         </div>
       </div>
 
-      <div className="controles-usuario">
+      <button
+        type="button"
+        className="controles-usuario"
+        onClick={() => navigate('/meu-perfil')}
+        aria-label="Ir para o meu perfil"
+      >
         <span className="nickname-topo">{usuario?.nickname}</span>
         <img
-          src={usuario?.avatar || 'https://placehold.co/32x32?text=XPV'}
+          src={usuario?.avatar || AVATAR_PADRAO}
           alt="Foto de perfil"
           className="avatar-pequeno"
         />
-      </div>
+      </button>
     </header>
   )
 }

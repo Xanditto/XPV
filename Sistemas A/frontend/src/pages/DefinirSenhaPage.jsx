@@ -22,7 +22,7 @@ export default function DefinirSenhaPage() {
     setSalvando(true)
     try {
       await definirSenha(senha)
-      navigate('/inicio')
+      navigate('/meu-perfil')
     } catch (err) {
       setErro(mensagemDeErroDeConexao(err, 'Não foi possível definir a senha.'))
     } finally {

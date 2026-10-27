@@ -12,6 +12,7 @@ import {
   salvarDestaques,
 } from '../lib/api'
 import { mensagemDeErroDeConexao } from '../lib/erros'
+import { AVATAR_PADRAO } from '../lib/formato'
 import LayoutApp from '../components/LayoutApp'
 import Modal from '../components/Modal'
 import CapaJogo from '../components/CapaJogo'
@@ -62,6 +63,49 @@ function paraRequest(destaque, contaId) {
   }
 }
 
+/**
+ * Monta, a partir da biblioteca já carregada, o DestaqueResponse que o
+ * servidor devolveria para esse request - assim o card de um destaque ainda
+ * não salvo já aparece certo no rascunho. Só "Tempo por plataforma" depende
+ * das outras contas e fica para depois de salvar.
+ */
+function previewDoRequest(request, jogos, conquistasEscolhidas) {
+  const preview = {
+    id: null,
+    tipo: request.tipo,
+    plataforma: request.plataforma,
+    jogos: [],
+    imagem: request.imagem,
+    texto: request.texto,
+  }
+  if (request.tipo === 'HORAS_PLATAFORMA') {
+    preview.horasTotais = jogos.reduce((total, jogo) => total + jogo.horasJogadas, 0)
+  } else if (request.tipo === 'MAIS_JOGADOS') {
+    preview.jogos = [...jogos].sort((a, b) => b.horasJogadas - a.horasJogadas).slice(0, 3)
+  } else if (request.tipo === 'JOGO_FAVORITO' || request.tipo === 'PERFECCIONISTA') {
+    preview.jogos = request.jogos.map((j) => jogos.find((jogo) => jogo.appId === j.appId)).filter(Boolean)
+  } else if (request.tipo === 'CONQUISTAS_ESPECIFICAS') {
+    preview.conquistas = conquistasEscolhidas
+  }
+  return preview
+}
+
+// Cada item do rascunho de destaques guarda o request (o que vai pro servidor)
+// e o preview (o que o card mostra). A chave só existe para o React.
+let proximaChave = 0
+function novoItem(request, preview) {
+  proximaChave += 1
+  return { chave: proximaChave, request, preview }
+}
+
+function itensDosDestaquesSalvos(destaques, contaId) {
+  return destaques.map((d) => novoItem(paraRequest(d, contaId), d))
+}
+
+function mesmosRequests(itensA, itensB) {
+  return JSON.stringify(itensA.map((i) => i.request)) === JSON.stringify(itensB.map((i) => i.request))
+}
+
 export default function ProfilePage() {
   const navigate = useNavigate()
   const [usuario, setUsuario] = useState(getUsuarioCache())
@@ -72,12 +116,14 @@ export default function ProfilePage() {
   const [mensagem, setMensagem] = useState('')
   const [erro, setErro] = useState('')
 
-  const [destaques, setDestaques] = useState([])
+  // Os destaques só vão pro servidor no "Salvar" do topo: até lá, adicionar,
+  // editar e remover mexem só no rascunho, e "Cancelar" volta pros salvos.
+  const [destaquesSalvos, setDestaquesSalvos] = useState([])
+  const [rascunho, setRascunho] = useState([])
   const [conta, setConta] = useState(null)
   const [jogos, setJogos] = useState([])
   const [carregandoDestaques, setCarregandoDestaques] = useState(true)
   const [erroDestaques, setErroDestaques] = useState('')
-  const [salvandoDestaque, setSalvandoDestaque] = useState(false)
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
   const [editandoIndex, setEditandoIndex] = useState(null)
   const [tipoNovo, setTipoNovo] = useState('')
@@ -98,7 +144,7 @@ export default function ProfilePage() {
         setErroCarregamentoPerfil('')
         setUsuario(dados)
         setNickname(dados.nickname)
-        setAvatarPreview(dados.avatar)
+        setAvatarPreview(dados.avatar || '')
         setDescricao(dados.descricao || '')
       })
       .catch((err) => {
@@ -118,9 +164,11 @@ export default function ProfilePage() {
   useEffect(() => {
     Promise.all([listarDestaques(), listarContas()])
       .then(async ([destaquesAtuais, contas]) => {
-        setDestaques(destaquesAtuais)
         const contaSteam = contas.find((c) => c.plataforma === 'Steam')
         setConta(contaSteam || null)
+        const itens = itensDosDestaquesSalvos(destaquesAtuais, contaSteam?.id)
+        setDestaquesSalvos(itens)
+        setRascunho(itens)
         if (contaSteam && contaSteam.bibliotecaPublica === true) {
           setJogos(await listarJogos(contaSteam.id))
         }
@@ -135,13 +183,32 @@ export default function ProfilePage() {
   const [filtroConquistas, setFiltroConquistas, jogosConquistasFiltrados] = useFiltroJogos(jogos)
   const temSteamComBiblioteca = conta && conta.bibliotecaPublica === true
 
+  const perfilAlterado =
+    !!usuario &&
+    (nickname !== usuario.nickname ||
+      descricao !== (usuario.descricao || '') ||
+      avatarPreview !== (usuario.avatar || ''))
+  const destaquesAlterados = !mesmosRequests(rascunho, destaquesSalvos)
+  const haAlteracoes = perfilAlterado || destaquesAlterados
+
+  // Avisa antes de fechar/recarregar a aba com alterações não salvas.
+  useEffect(() => {
+    if (!haAlteracoes) return undefined
+    const avisar = (event) => {
+      event.preventDefault()
+      event.returnValue = ''
+    }
+    window.addEventListener('beforeunload', avisar)
+    return () => window.removeEventListener('beforeunload', avisar)
+  }, [haAlteracoes])
+
   const contagemPorTipo = useMemo(() => {
     const contagem = {}
-    for (const d of destaques) {
-      contagem[d.tipo] = (contagem[d.tipo] || 0) + 1
+    for (const item of rascunho) {
+      contagem[item.request.tipo] = (contagem[item.request.tipo] || 0) + 1
     }
     return contagem
-  }, [destaques])
+  }, [rascunho])
 
   const tiposDisponiveis = useMemo(
     () => Object.keys(TIPOS_DESTAQUE).filter((tipo) => (contagemPorTipo[tipo] || 0) < LIMITE_POR_TIPO[tipo]),
@@ -153,6 +220,7 @@ export default function ProfilePage() {
     if (!arquivo) return
     const base64 = await arquivoParaBase64(arquivo)
     setAvatarPreview(base64)
+    event.target.value = ''
   }
 
   async function handleEscolherImagemDestaque(event) {
@@ -164,22 +232,46 @@ export default function ProfilePage() {
 
   async function handleSalvar(event) {
     event.preventDefault()
+    if (mostrarFormulario) {
+      setErro('Confirme ou cancele o destaque que você está editando antes de salvar.')
+      return
+    }
     setSalvando(true)
     setErro('')
     setMensagem('')
     try {
-      const atualizado = await atualizarPerfil({ nickname, avatar: avatarPreview, descricao })
-      setUsuario(atualizado)
-      setMensagem('Perfil atualizado com sucesso!')
+      if (perfilAlterado) {
+        const atualizado = await atualizarPerfil({
+          nickname,
+          avatar: avatarPreview,
+          descricao,
+          removerAvatar: !avatarPreview,
+        })
+        setUsuario(atualizado)
+        setAvatarPreview(atualizado.avatar || '')
+      }
+      if (destaquesAlterados) {
+        const atualizados = await salvarDestaques(rascunho.map((item) => item.request))
+        const itens = itensDosDestaquesSalvos(atualizados, conta?.id)
+        setDestaquesSalvos(itens)
+        setRascunho(itens)
+      }
+      setMensagem('Alterações salvas com sucesso!')
     } catch (err) {
-      setErro(mensagemDeErroDeConexao(err, 'Não foi possível salvar o perfil.'))
+      setErro(mensagemDeErroDeConexao(err, 'Não foi possível salvar as alterações.'))
     } finally {
       setSalvando(false)
     }
   }
 
-  function requestsAtuais() {
-    return destaques.map((d) => paraRequest(d, conta?.id))
+  function handleCancelar() {
+    setNickname(usuario.nickname)
+    setDescricao(usuario.descricao || '')
+    setAvatarPreview(usuario.avatar || '')
+    setRascunho(destaquesSalvos)
+    limparFormularioDestaque()
+    setErro('')
+    setMensagem('')
   }
 
   function limparFormularioDestaque() {
@@ -199,13 +291,14 @@ export default function ProfilePage() {
   }
 
   function handleAbrirFormulario() {
-    setEditandoIndex(null)
+    limparFormularioDestaque()
     setTipoNovo(tiposDisponiveis[0] || '')
     setMostrarFormulario(true)
   }
 
   function handleEditarDestaque(index) {
-    const destaque = destaques[index]
+    const destaque = rascunho[index].preview
+    limparFormularioDestaque()
     setEditandoIndex(index)
     setTipoNovo(destaque.tipo)
     setJogoFavoritoAppId(destaque.tipo === 'JOGO_FAVORITO' ? String(destaque.jogos[0].appId) : '')
@@ -215,30 +308,16 @@ export default function ProfilePage() {
     setImagemDestaque(destaque.tipo === 'IMAGEM_PERSONALIZADA' ? destaque.imagem : '')
     setTextoDestaque(destaque.tipo === 'CAIXA_TEXTO' ? destaque.texto : '')
     setConquistasEscolhidas(destaque.tipo === 'CONQUISTAS_ESPECIFICAS' ? destaque.conquistas : [])
-    setJogoConquistaAppId('')
-    setConquistasDoJogo([])
     setMostrarFormulario(true)
   }
 
-  async function persistirDestaques(novaLista) {
-    setSalvandoDestaque(true)
-    setErroDestaques('')
-    try {
-      const atualizados = await salvarDestaques(novaLista)
-      setDestaques(atualizados)
-      limparFormularioDestaque()
-    } catch (err) {
-      setErroDestaques(mensagemDeErroDeConexao(err, 'Não foi possível salvar os destaques.'))
-    } finally {
-      setSalvandoDestaque(false)
-    }
-  }
-
   function handleRemoverDestaque(index) {
-    persistirDestaques(requestsAtuais().filter((_, i) => i !== index))
+    setRascunho((atual) => atual.filter((_, i) => i !== index))
+    // Os índices mudam depois de remover: fecha qualquer edição em andamento.
+    if (mostrarFormulario) limparFormularioDestaque()
   }
 
-  function handleAdicionarDestaque() {
+  function handleConfirmarDestaque() {
     const novoRequest = { tipo: tipoNovo, plataforma: null, jogos: null, imagem: null, texto: null }
     if (tipoNovo === 'HORAS_PLATAFORMA') {
       novoRequest.plataforma = 'Steam'
@@ -271,13 +350,16 @@ export default function ProfilePage() {
       }))
     }
 
+    const preview = previewDoRequest(novoRequest, jogos, conquistasEscolhidas)
     if (editandoIndex !== null) {
-      const atuais = requestsAtuais()
-      atuais[editandoIndex] = novoRequest
-      persistirDestaques(atuais)
+      setRascunho((atual) =>
+        atual.map((item, i) => (i === editandoIndex ? { ...item, request: novoRequest, preview } : item)),
+      )
     } else {
-      persistirDestaques([...requestsAtuais(), novoRequest])
+      setRascunho((atual) => [...atual, novoItem(novoRequest, preview)])
     }
+    setMensagem('')
+    limparFormularioDestaque()
   }
 
   function toggleJogoPerfeccionista(appId) {
@@ -322,24 +404,199 @@ export default function ProfilePage() {
 
   if (!usuario) return null
 
+  // Mesmo formulário para adicionar (aparece no fim da lista) e editar
+  // (aparece no lugar do próprio destaque).
+  const formularioDestaque = (
+    <div className="formulario-destaque">
+      <label className="campo">
+        <span>Tipo de destaque</span>
+        <select value={tipoNovo} onChange={(e) => setTipoNovo(e.target.value)} disabled={editandoIndex !== null}>
+          {editandoIndex !== null ? (
+            <option value={tipoNovo}>{TIPOS_DESTAQUE[tipoNovo]}</option>
+          ) : (
+            tiposDisponiveis.map((tipo) => (
+              <option key={tipo} value={tipo}>
+                {TIPOS_DESTAQUE[tipo]}
+              </option>
+            ))
+          )}
+        </select>
+      </label>
+
+      {tipoNovo === 'JOGO_FAVORITO' && (
+        <div className="campo">
+          <span>Jogo</span>
+          <input
+            type="text"
+            value={filtroFavorito}
+            onChange={(e) => setFiltroFavorito(e.target.value)}
+            placeholder="Buscar jogo pelo nome..."
+          />
+          <div className="lista-busca-jogos">
+            {jogosFavoritoFiltrados.length === 0 ? (
+              <p className="mensagem">Nenhum jogo encontrado.</p>
+            ) : (
+              jogosFavoritoFiltrados.map((jogo) => (
+                <button
+                  key={jogo.appId}
+                  type="button"
+                  className={`modal-item-jogo ${String(jogo.appId) === jogoFavoritoAppId ? 'modal-item-jogo-selecionado' : ''}`}
+                  onClick={() => setJogoFavoritoAppId(String(jogo.appId))}
+                >
+                  <CapaJogo jogo={jogo} className="modal-icone-jogo" />
+                  <span>{jogo.nome}</span>
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+
+      {tipoNovo === 'PERFECCIONISTA' && (
+        <div className="campo">
+          <span>
+            Jogos platinados ({perfeccionistaAppIds.length}/{MAXIMO_PERFECCIONISTA}, mínimo{' '}
+            {MINIMO_PERFECCIONISTA})
+          </span>
+          {jogosPlatinados.length === 0 ? (
+            <p className="mensagem">Você ainda não tem jogos 100% platinados.</p>
+          ) : (
+            <>
+              <input
+                type="text"
+                value={filtroPerfeccionista}
+                onChange={(e) => setFiltroPerfeccionista(e.target.value)}
+                placeholder="Buscar jogo pelo nome..."
+              />
+              <div className="lista-selecao-jogos">
+                {jogosPlatinadosFiltrados.length === 0 ? (
+                  <p className="mensagem">Nenhum jogo encontrado.</p>
+                ) : (
+                  jogosPlatinadosFiltrados.map((jogo) => (
+                    <label key={jogo.appId} className="opcao-jogo">
+                      <input
+                        type="checkbox"
+                        checked={perfeccionistaAppIds.includes(String(jogo.appId))}
+                        onChange={() => toggleJogoPerfeccionista(String(jogo.appId))}
+                      />
+                      <CapaJogo jogo={jogo} className="icone-jogo" />
+                      {jogo.nome}
+                    </label>
+                  ))
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {tipoNovo === 'IMAGEM_PERSONALIZADA' && (
+        <div className="campo">
+          <span>Imagem</span>
+          {imagemDestaque && <img src={imagemDestaque} alt="Pré-visualização" className="imagem-destaque-preview" />}
+          <label className="botao-trocar-foto">
+            {imagemDestaque ? 'Trocar imagem' : 'Escolher imagem'}
+            <input type="file" accept="image/*" onChange={handleEscolherImagemDestaque} hidden />
+          </label>
+        </div>
+      )}
+
+      {tipoNovo === 'CAIXA_TEXTO' && (
+        <label className="campo">
+          <span>
+            Texto ({textoDestaque.length}/{MAXIMO_TAMANHO_TEXTO})
+          </span>
+          <textarea
+            className="campo-textarea"
+            value={textoDestaque}
+            onChange={(e) => setTextoDestaque(e.target.value)}
+            maxLength={MAXIMO_TAMANHO_TEXTO}
+            rows={4}
+            placeholder="Escreva o que quiser..."
+          />
+        </label>
+      )}
+
+      {tipoNovo === 'CONQUISTAS_ESPECIFICAS' && (
+        <div className="campo">
+          <span>
+            Conquistas escolhidas ({conquistasEscolhidas.length}/{MAXIMO_CONQUISTAS_ESPECIFICAS})
+          </span>
+
+          {conquistasEscolhidas.length > 0 && (
+            <div className="lista-selecao-jogos">
+              {conquistasEscolhidas.map((c) => (
+                <span key={`${c.appId}-${c.conquistaChave}`} className="opcao-jogo">
+                  {c.conquistaNome} ({c.jogoNome})
+                  <button
+                    type="button"
+                    className="botao-remover-destaque"
+                    onClick={() => toggleConquistaEspecifica({ chave: c.conquistaChave })}
+                    aria-label="Remover conquista escolhida"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+
+          <button type="button" className="botao-secundario" onClick={() => setModalConquistasAberto(true)}>
+            Escolher jogo e conquistas
+          </button>
+        </div>
+      )}
+
+      <div className="acoes-formulario-destaque">
+        <button type="button" className="botao-principal" onClick={handleConfirmarDestaque}>
+          Confirmar
+        </button>
+        <button type="button" className="botao-secundario" onClick={limparFormularioDestaque}>
+          Cancelar
+        </button>
+      </div>
+    </div>
+  )
+
   return (
     <LayoutApp>
-      <h1 className="titulo-pagina">Editar Perfil</h1>
+      <div className="barra-salvar-perfil">
+        <h1 className="titulo-pagina">Editar Perfil</h1>
+        <div className="acoes-salvar-perfil">
+          {erro ? (
+            <span className="status-salvar-perfil status-salvar-perfil-erro">{erro}</span>
+          ) : haAlteracoes ? (
+            <span className="status-salvar-perfil">Alterações não salvas</span>
+          ) : (
+            mensagem && <span className="status-salvar-perfil status-salvar-perfil-sucesso">{mensagem}</span>
+          )}
+          <button type="button" className="botao-secundario" onClick={handleCancelar} disabled={!haAlteracoes || salvando}>
+            Cancelar
+          </button>
+          {/* Fica fora do <form>, mas submete ele (validação de nickname do navegador incluída). */}
+          <button type="submit" form="formulario-perfil" className="botao-principal" disabled={!haAlteracoes || salvando}>
+            {salvando ? 'Salvando...' : 'Salvar'}
+          </button>
+        </div>
+      </div>
 
       {erroCarregamentoPerfil && <p className="mensagem mensagem-erro">{erroCarregamentoPerfil}</p>}
 
       <div className="cartao cartao-largo cartao-formulario-perfil">
-        <form onSubmit={handleSalvar} className="formulario-perfil">
+        <form id="formulario-perfil" onSubmit={handleSalvar} className="formulario-perfil">
           <div className="avatar-wrapper">
-            <img
-              src={avatarPreview || 'https://placehold.co/120x120?text=XPV'}
-              alt="Foto de perfil"
-              className="avatar"
-            />
-            <label className="botao-trocar-foto">
-              Trocar foto
-              <input type="file" accept="image/*" onChange={handleTrocarFoto} hidden />
-            </label>
+            <img src={avatarPreview || AVATAR_PADRAO} alt="Foto de perfil" className="avatar" />
+            <div className="acoes-foto">
+              <label className="botao-trocar-foto">
+                Trocar foto
+                <input type="file" accept="image/*" onChange={handleTrocarFoto} hidden />
+              </label>
+              {avatarPreview && (
+                <button type="button" className="botao-trocar-foto botao-remover-foto" onClick={() => setAvatarPreview('')}>
+                  Remover foto
+                </button>
+              )}
+            </div>
           </div>
 
           <label className="campo">
@@ -370,13 +627,6 @@ export default function ProfilePage() {
               placeholder="Conte um pouco sobre você..."
             />
           </label>
-
-          <button type="submit" className="botao-principal" disabled={salvando}>
-            {salvando ? 'Salvando...' : 'Salvar alterações'}
-          </button>
-
-          {mensagem && <p className="mensagem mensagem-sucesso">{mensagem}</p>}
-          {erro && <p className="mensagem mensagem-erro">{erro}</p>}
         </form>
       </div>
 
@@ -390,18 +640,22 @@ export default function ProfilePage() {
       ) : (
         <>
           <div className="lista-destaques">
-            {destaques.map((destaque, index) => (
-              <CardDestaque
-                key={destaque.id ?? index}
-                destaque={destaque}
-                onRemover={() => handleRemoverDestaque(index)}
-                onEditar={
-                  destaque.tipo === 'MAIS_JOGADOS' || destaque.tipo === 'TEMPO_POR_PLATAFORMA'
-                    ? undefined
-                    : () => handleEditarDestaque(index)
-                }
-              />
-            ))}
+            {rascunho.map((item, index) =>
+              mostrarFormulario && editandoIndex === index ? (
+                <div key={item.chave}>{formularioDestaque}</div>
+              ) : (
+                <CardDestaque
+                  key={item.chave}
+                  destaque={item.preview}
+                  onRemover={() => handleRemoverDestaque(index)}
+                  onEditar={
+                    item.request.tipo === 'MAIS_JOGADOS' || item.request.tipo === 'TEMPO_POR_PLATAFORMA'
+                      ? undefined
+                      : () => handleEditarDestaque(index)
+                  }
+                />
+              ),
+            )}
           </div>
 
           {!temSteamComBiblioteca ? (
@@ -409,155 +663,7 @@ export default function ProfilePage() {
               Vincule uma conta Steam com biblioteca pública em "Contas vinculadas" para poder escolher destaques.
             </p>
           ) : mostrarFormulario ? (
-            <div className="formulario-destaque">
-              <label className="campo">
-                <span>Tipo de destaque</span>
-                <select value={tipoNovo} onChange={(e) => setTipoNovo(e.target.value)} disabled={editandoIndex !== null}>
-                  {editandoIndex !== null ? (
-                    <option value={tipoNovo}>{TIPOS_DESTAQUE[tipoNovo]}</option>
-                  ) : (
-                    tiposDisponiveis.map((tipo) => (
-                      <option key={tipo} value={tipo}>
-                        {TIPOS_DESTAQUE[tipo]}
-                      </option>
-                    ))
-                  )}
-                </select>
-              </label>
-
-              {tipoNovo === 'JOGO_FAVORITO' && (
-                <div className="campo">
-                  <span>Jogo</span>
-                  <input
-                    type="text"
-                    value={filtroFavorito}
-                    onChange={(e) => setFiltroFavorito(e.target.value)}
-                    placeholder="Buscar jogo pelo nome..."
-                  />
-                  <div className="lista-busca-jogos">
-                    {jogosFavoritoFiltrados.length === 0 ? (
-                      <p className="mensagem">Nenhum jogo encontrado.</p>
-                    ) : (
-                      jogosFavoritoFiltrados.map((jogo) => (
-                        <button
-                          key={jogo.appId}
-                          type="button"
-                          className={`modal-item-jogo ${String(jogo.appId) === jogoFavoritoAppId ? 'modal-item-jogo-selecionado' : ''}`}
-                          onClick={() => setJogoFavoritoAppId(String(jogo.appId))}
-                        >
-                          <CapaJogo jogo={jogo} className="modal-icone-jogo" />
-                          <span>{jogo.nome}</span>
-                        </button>
-                      ))
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {tipoNovo === 'PERFECCIONISTA' && (
-                <div className="campo">
-                  <span>
-                    Jogos platinados ({perfeccionistaAppIds.length}/{MAXIMO_PERFECCIONISTA}, mínimo{' '}
-                    {MINIMO_PERFECCIONISTA})
-                  </span>
-                  {jogosPlatinados.length === 0 ? (
-                    <p className="mensagem">Você ainda não tem jogos 100% platinados.</p>
-                  ) : (
-                    <>
-                      <input
-                        type="text"
-                        value={filtroPerfeccionista}
-                        onChange={(e) => setFiltroPerfeccionista(e.target.value)}
-                        placeholder="Buscar jogo pelo nome..."
-                      />
-                      <div className="lista-selecao-jogos">
-                        {jogosPlatinadosFiltrados.length === 0 ? (
-                          <p className="mensagem">Nenhum jogo encontrado.</p>
-                        ) : (
-                          jogosPlatinadosFiltrados.map((jogo) => (
-                            <label key={jogo.appId} className="opcao-jogo">
-                              <input
-                                type="checkbox"
-                                checked={perfeccionistaAppIds.includes(String(jogo.appId))}
-                                onChange={() => toggleJogoPerfeccionista(String(jogo.appId))}
-                              />
-                              <CapaJogo jogo={jogo} className="icone-jogo" />
-                              {jogo.nome}
-                            </label>
-                          ))
-                        )}
-                      </div>
-                    </>
-                  )}
-                </div>
-              )}
-
-              {tipoNovo === 'IMAGEM_PERSONALIZADA' && (
-                <div className="campo">
-                  <span>Imagem</span>
-                  {imagemDestaque && <img src={imagemDestaque} alt="Pré-visualização" className="imagem-destaque-preview" />}
-                  <label className="botao-trocar-foto">
-                    {imagemDestaque ? 'Trocar imagem' : 'Escolher imagem'}
-                    <input type="file" accept="image/*" onChange={handleEscolherImagemDestaque} hidden />
-                  </label>
-                </div>
-              )}
-
-              {tipoNovo === 'CAIXA_TEXTO' && (
-                <label className="campo">
-                  <span>
-                    Texto ({textoDestaque.length}/{MAXIMO_TAMANHO_TEXTO})
-                  </span>
-                  <textarea
-                    className="campo-textarea"
-                    value={textoDestaque}
-                    onChange={(e) => setTextoDestaque(e.target.value)}
-                    maxLength={MAXIMO_TAMANHO_TEXTO}
-                    rows={4}
-                    placeholder="Escreva o que quiser..."
-                  />
-                </label>
-              )}
-
-              {tipoNovo === 'CONQUISTAS_ESPECIFICAS' && (
-                <div className="campo">
-                  <span>
-                    Conquistas escolhidas ({conquistasEscolhidas.length}/{MAXIMO_CONQUISTAS_ESPECIFICAS})
-                  </span>
-
-                  {conquistasEscolhidas.length > 0 && (
-                    <div className="lista-selecao-jogos">
-                      {conquistasEscolhidas.map((c) => (
-                        <span key={`${c.appId}-${c.conquistaChave}`} className="opcao-jogo">
-                          {c.conquistaNome} ({c.jogoNome})
-                          <button
-                            type="button"
-                            className="botao-remover-destaque"
-                            onClick={() => toggleConquistaEspecifica({ chave: c.conquistaChave })}
-                            aria-label="Remover conquista escolhida"
-                          >
-                            ×
-                          </button>
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  <button type="button" className="botao-secundario" onClick={() => setModalConquistasAberto(true)}>
-                    Escolher jogo e conquistas
-                  </button>
-                </div>
-              )}
-
-              <div className="acoes-formulario-destaque">
-                <button type="button" className="botao-principal" onClick={handleAdicionarDestaque} disabled={salvandoDestaque}>
-                  {salvandoDestaque ? 'Salvando...' : editandoIndex !== null ? 'Salvar edição' : 'Confirmar'}
-                </button>
-                <button type="button" className="botao-secundario" onClick={limparFormularioDestaque}>
-                  Cancelar
-                </button>
-              </div>
-            </div>
+            editandoIndex === null && formularioDestaque
           ) : tiposDisponiveis.length === 0 ? (
             <p className="mensagem">Você atingiu o limite de todos os tipos de destaque. Remova algum para escolher outro.</p>
           ) : (

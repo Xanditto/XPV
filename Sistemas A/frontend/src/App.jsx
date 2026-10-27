@@ -1,7 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import LoginPage from './pages/LoginPage'
 import DefinirSenhaPage from './pages/DefinirSenhaPage'
-import HomePage from './pages/HomePage'
 import ProfilePage from './pages/ProfilePage'
 import ContasPage from './pages/ContasPage'
 import BibliotecaPage from './pages/BibliotecaPage'
@@ -24,14 +23,8 @@ export default function App() {
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/inicio"
-        element={
-          <ProtectedRoute>
-            <HomePage />
-          </ProtectedRoute>
-        }
-      />
+      {/* Ainda não existe uma tela inicial própria (Issue #40): por enquanto /inicio cai no perfil. */}
+      <Route path="/inicio" element={<Navigate to="/meu-perfil" replace />} />
       <Route
         path="/perfil"
         element={
@@ -80,7 +73,7 @@ export default function App() {
           </ProtectedRoute>
         }
       />
-      <Route path="/" element={<Navigate to={getSessionToken() ? '/inicio' : '/login'} replace />} />
+      <Route path="/" element={<Navigate to={getSessionToken() ? '/meu-perfil' : '/login'} replace />} />
     </Routes>
   )
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import {
   desvincularConta,
   iniciarVinculoBattleNet,
@@ -8,6 +8,7 @@ import {
   vincularRiot,
 } from '../lib/api'
 import { mensagemDeErroDeConexao } from '../lib/erros'
+import LayoutApp from '../components/LayoutApp'
 
 const NOMES_PLATAFORMA = {
   steam: 'Steam',
@@ -32,7 +33,6 @@ function mensagemStatus(searchParams) {
 }
 
 export default function ContasPage() {
-  const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const [contas, setContas] = useState([])
   const [carregando, setCarregando] = useState(true)
@@ -79,10 +79,10 @@ export default function ContasPage() {
   const temRiot = contas.some((c) => c.plataforma === 'Riot Games')
 
   return (
-    <div className="pagina-centralizada">
-      <div className="cartao cartao-largo">
-        <h1 className="titulo">Contas Vinculadas</h1>
-        <p className="subtitulo">
+    <LayoutApp>
+      <div className="pagina-contas">
+        <h1 className="titulo-pagina">Contas vinculadas</h1>
+        <p className="subtitulo-pagina">
           Conecte suas contas de jogos para trazer seus dados para o XP Vault.
         </p>
 
@@ -158,11 +158,7 @@ export default function ContasPage() {
             )}
           </div>
         )}
-
-        <button type="button" className="botao-secundario" onClick={() => navigate('/inicio')}>
-          Voltar
-        </button>
       </div>
-    </div>
+    </LayoutApp>
   )
 }

@@ -12,7 +12,7 @@ import LayoutApp from '../components/LayoutApp'
 import Modal from '../components/Modal'
 import CapaJogo from '../components/CapaJogo'
 import SeletorEstrelas from '../components/SeletorEstrelas'
-import { IconeSteam } from '../components/Icones'
+import { IconeLixeira, IconeSteam } from '../components/Icones'
 
 export default function AvaliacoesPage() {
   const [conta, setConta] = useState(null)
@@ -28,6 +28,8 @@ export default function AvaliacoesPage() {
   const [resenha, setResenha] = useState('')
   const [salvando, setSalvando] = useState(false)
   const [erroModal, setErroModal] = useState('')
+
+  const [avaliacaoParaRemover, setAvaliacaoParaRemover] = useState(null)
 
   useEffect(() => {
     listarContas()
@@ -117,6 +119,7 @@ export default function AvaliacoesPage() {
   }
 
   async function handleRemover(id) {
+    setAvaliacaoParaRemover(null)
     try {
       await removerAvaliacao(id)
       setAvaliacoes((atual) => atual.filter((a) => a.id !== id))
@@ -173,11 +176,12 @@ export default function AvaliacoesPage() {
                     </button>
                     <button
                       type="button"
-                      className="botao-remover-destaque"
-                      onClick={() => handleRemover(avaliacao.id)}
+                      className="botao-remover-destaque botao-lixeira"
+                      onClick={() => setAvaliacaoParaRemover(avaliacao)}
                       aria-label="Remover avaliação"
+                      title="Remover avaliação"
                     >
-                      ×
+                      <IconeLixeira />
                     </button>
                   </div>
                 </div>
@@ -257,6 +261,23 @@ export default function AvaliacoesPage() {
               {salvando ? 'Salvando...' : 'Confirmar'}
             </button>
             <button type="button" className="botao-secundario" onClick={handleFecharModal}>
+              Cancelar
+            </button>
+          </div>
+        </Modal>
+      )}
+
+      {avaliacaoParaRemover && (
+        <Modal titulo="Apagar avaliação" onFechar={() => setAvaliacaoParaRemover(null)}>
+          <p className="mensagem">
+            Tem certeza que deseja apagar sua avaliação de <strong>{avaliacaoParaRemover.jogoNome}</strong>?
+            Essa ação não pode ser desfeita.
+          </p>
+          <div className="acoes-formulario-destaque">
+            <button type="button" className="botao-principal" onClick={() => handleRemover(avaliacaoParaRemover.id)}>
+              Apagar
+            </button>
+            <button type="button" className="botao-secundario" onClick={() => setAvaliacaoParaRemover(null)}>
               Cancelar
             </button>
           </div>

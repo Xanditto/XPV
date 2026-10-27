@@ -37,7 +37,9 @@ public class ProfileController {
         if (request.nickname() != null && !request.nickname().isBlank()) {
             usuario.setNickname(request.nickname());
         }
-        if (request.avatar() != null && !request.avatar().isBlank()) {
+        if (Boolean.TRUE.equals(request.removerAvatar())) {
+            usuario.setAvatar(null);
+        } else if (request.avatar() != null && !request.avatar().isBlank()) {
             usuario.setAvatar(request.avatar());
         }
         if (request.descricao() != null) {

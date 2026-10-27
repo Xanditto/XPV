@@ -140,6 +140,23 @@ class ProfileControllerTest {
     }
 
     @Test
+    void usuarioConsegueRemoverAFotoEVoltarParaAPadrao() throws Exception {
+        criarUsuarioComSenha("google-sub-14", "nono@gmail.com", "NicknameFoto", "senha123");
+        String token = logar("nono@gmail.com", "senha123");
+        put("/api/profile", "{\"nickname\":\"NicknameFoto\",\"avatar\":\"foto.png\"}", token);
+
+        var semFoto = put("/api/profile",
+                "{\"nickname\":\"NicknameFoto\",\"avatar\":\"\",\"removerAvatar\":true}", token);
+        assertThat(semFoto.statusCode()).isEqualTo(200);
+        assertThat(objectMapper.readTree(semFoto.body()).path("avatar").isNull()).isTrue();
+
+        // Avatar vazio sem removerAvatar continua não mexendo na foto.
+        put("/api/profile", "{\"nickname\":\"NicknameFoto\",\"avatar\":\"foto-2.png\"}", token);
+        var mantida = put("/api/profile", "{\"nickname\":\"NicknameFoto\",\"avatar\":\"\"}", token);
+        assertThat(objectMapper.readTree(mantida.body()).path("avatar").asText()).isEqualTo("foto-2.png");
+    }
+
+    @Test
     void nicknameMuitoCurto_retorna400() throws Exception {
         criarUsuarioComSenha("google-sub-12", "setimo@gmail.com", "NicknameValido", "senha123");
         String token = logar("setimo@gmail.com", "senha123");

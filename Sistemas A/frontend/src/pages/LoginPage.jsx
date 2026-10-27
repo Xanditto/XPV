@@ -23,7 +23,7 @@ export default function LoginPage() {
     setEntrando(true)
     try {
       await loginComSenha(identificador, senha)
-      navigate('/inicio')
+      navigate('/meu-perfil')
     } catch (err) {
       setErroLogin(mensagemDeErroDeConexao(err, 'Não foi possível entrar.'))
     } finally {
@@ -37,7 +37,7 @@ export default function LoginPage() {
       setCarregandoGoogle(true)
       try {
         const data = await loginComGoogle(response.credential)
-        navigate(data.precisaDefinirSenha ? '/definir-senha' : '/inicio')
+        navigate(data.precisaDefinirSenha ? '/definir-senha' : '/meu-perfil')
       } catch (err) {
         setErroGoogle(mensagemDeErroDeConexao(err, 'Não foi possível entrar com o Google.'))
       } finally {
